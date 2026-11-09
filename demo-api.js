@@ -1,8 +1,8 @@
 // Предпросмотр на GitHub Pages: тот же интерфейс, но вместо сервера данные в браузере посетителя.
 // Подключается только в сборке предпросмотра. Брони вымышленные, настоящих данных здесь нет.
 (() => {
-  const FROM = 12, HOURS = 16, TZ = 5, H = 3600000;
-  const STORE = 'booking_preview_v1', KEY_D = 'booking_preview_d';
+  const FROM = 12, HOURS = 18, TZ = 5, H = 3600000;
+  const STORE = 'booking_preview_v2', KEY_D = 'booking_preview_d';
   const BASE = 'https://mlsmybtspqqpsvbukbcj.supabase.co/storage/v1/object/public/kp-media/';
   const realFetch = window.fetch.bind(window);
   const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -28,8 +28,11 @@
     let c = {};
     if (folder) c = await realFetch(`${BASE}${folder}/demo.json`, { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).catch(() => ({}));
     const halls = (c.halls || [{ n: 'Зал 1', p: 1000 }, { n: 'Зал 2', p: 800 }, { n: 'Зал 3', p: 1200 }])
-      .map((x, i) => ({ id: i + 1, slug: `h${i + 1}`, name: x.n, price: x.p, c1: (x.c || ['#ff2d3a'])[0], c2: (x.c || [0, '#2f4dff'])[1], photo: '' }));
-    cfg = { name: c.name || 'Бронь залов', sub: c.sub || 'Выберите зал и время', tags: c.tags || [], phone: '', phoneHref: '', vk: '', from: FROM, hours: HOURS, horizonDays: 30, programs: [], operator: {}, halls };
+      .map((x, i) => ({ id: i + 1, slug: `h${i + 1}`, name: x.n, price: x.p, c1: (x.c || ['#ff2d3a'])[0], c2: (x.c || [0, '#2f4dff'])[1], photo: x.photo || '', cap: x.cap || 10, extra: x.extra || 0, what: x.what || '',
+        rates: x.rates || { day: x.p, night: x.p, weekend: x.p } }));
+    const s = c.site || {};
+    cfg = { name: c.name || 'Бронь залов', sub: c.sub || 'Выберите зал и время', lead: s.lead || '', tags: c.tags || [], hoursText: s.hoursText || '', ownFood: s.ownFood || '', address: s.address || '', mapUrl: s.mapUrl || '',
+      phone: s.phone || '', phoneHref: s.phoneHref || '', vk: s.vk || '', from: FROM, hours: HOURS, closeLabel: s.closeLabel || 'до закрытия', holidays: s.holidays || [], horizonDays: 30, programs: s.programs || [], operator: {}, halls };
     return cfg;
   }
 
@@ -81,7 +84,7 @@
       const phone = phoneOf(body.phone);
       if (!(body.guests >= 1 && body.guests <= 60)) throw new E(400, 'bad_guests', 'Укажите число гостей');
       if (clash(d, h.id, a, z)) throw new E(409, 'slot_taken', 'Это время уже занято');
-      const b = { id: ++d.seq, token: token(), hall_id: h.id, start_h: a, end_h: z, status: 'request', source: 'site', name: String(body.name).slice(0, 60), phone, guests: body.guests, comment: String(body.comment || '').slice(0, 300), total: h.price * (z - a), created_at: Date.now() };
+      const b = { id: ++d.seq, token: token(), hall_id: h.id, start_h: a, end_h: z, status: 'request', source: 'site', name: String(body.name).slice(0, 60), phone, guests: body.guests, comment: String(body.comment || '').slice(0, 300), total: Pricing.total(h, body.date, body.start, body.hours, body.guests, cfg), created_at: Date.now() };
       d.rows.push(b); save(d); return { token: b.token, ...view(b) };
     }
     if ((m = /^public\/requests\/([\w-]+)(?:\/(accept|decline))?$/.exec(path))) {

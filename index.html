@@ -3,28 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0a0f">
-<title>бронь залов</title>
-<meta name="description" content="Свободные часы во всех залах. Выберите зал и время и оставьте заявку.">
+<meta name="theme-color" content="#0a0812">
+<title>Бронь залов</title>
+<meta name="description" content="Свободные часы и заявка на бронь">
+<meta property="og:title" content="Бронь залов">
+<meta property="og:description" content="Свободные часы и заявка на бронь">
+<meta property="og:type" content="website">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/dela-gothic-one-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script src="demo-api.js"></script>
 <link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="site.css">
+<script src="pricing.js"></script>
 <script src="guest.js" defer></script>
 </head>
-<body class="guestpage">
+<body class="site">
   <div class="toast" id="toast" role="status"><div class="ic" id="tIc">✓</div><div><b id="tT"></b><span id="tS"></span></div></div>
-  <header class="gtop"><h1 class="brand" id="name">БРОНЬ ЗАЛОВ</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div>
-    <div class="contacts"><a id="call" class="chip">Позвонить</a><a id="vk" class="chip" target="_blank" rel="noopener">Написать в ВК</a></div></header>
-  <nav class="days" id="days" aria-label="Выбор дня"></nav>
-  <section class="mine" id="mine"></section>
-  <div class="hint"><em>свободно</em><em class="b">занято</em><em class="s">ваш выбор</em></div>
-  <main id="halls" class="halls"></main>
-  <details class="programs" id="programsBox" hidden><summary>Программы и акции</summary><div id="programs"></div></details>
-  <footer class="foot"><a href="privacy.html">Политика обработки персональных данных</a></footer>
+
+  <header class="topbar">
+    <a class="logo" href="#top"></a>
+    <nav aria-label="Разделы"><a href="#halls">Залы</a><a href="#book">Бронь</a><a href="#programs">Программы</a><a href="#contacts">Контакты</a></nav>
+    <a class="toptel" id="topTel"></a>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <div class="herotext">
+        <h1 id="name"></h1>
+        <div class="herosub"><p id="lead"></p><a class="cta" href="#book">Выбрать зал и время</a></div>
+      </div>
+      <div class="wallhead"><h2 id="wallTitle">Свободные залы</h2><p id="wallHint">Горят залы, которые ещё можно забронировать</p></div>
+      <div class="wall" id="wall" aria-live="polite"></div>
+    </section>
+
+    <section class="block" id="halls" aria-labelledby="hallsT">
+      <h2 class="h" id="hallsT">Залы</h2>
+      <div class="hlist" id="hallList"></div>
+    </section>
+
+    <section class="block book" id="book" aria-labelledby="bookT">
+      <h2 class="h" id="bookT">Выбрать время</h2>
+      <p class="bookhelp">Нажмите на свободный час, затем на соседние, чтобы забронировать дольше.</p>
+      <div class="daysbar"><nav class="days" id="days" aria-label="Выбор дня"></nav><div class="hint"><em>свободно</em><em class="b">занято</em><em class="s">ваш выбор</em></div></div>
+      <div class="mine" id="mine"></div>
+      <div class="grid2" id="slots"></div>
+    </section>
+
+    <section class="block" id="programs" aria-labelledby="progT">
+      <h2 class="h" id="progT">Программы</h2>
+      <div class="plist" id="programsList"></div>
+      <p class="own" id="ownFood"></p>
+    </section>
+
+    <section class="block contacts" id="contacts" aria-labelledby="contT">
+      <h2 class="h" id="contT">Как нас найти</h2>
+      <div class="cgrid">
+        <div><p class="big" id="addr"></p><p id="hoursText"></p><a class="lnk2" id="map" target="_blank" rel="noopener">Открыть на карте</a></div>
+        <div><a class="big tel" id="tel"></a><p>Бронь по телефону и в сообщениях</p><a class="lnk2" id="vk" target="_blank" rel="noopener">Написать ВКонтакте</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot"><a href="privacy.html">Политика обработки персональных данных</a><a href="consent.html">Согласие на обработку данных</a></footer>
   <div class="pad"></div>
 
   <div class="bar" id="bar"><div class="w"><b id="barT"></b><span id="barS"></span></div>
-    <div class="row"><button type="button" class="btn" id="openForm">Оставить заявку</button></div></div>
+    <button type="button" class="btn" id="openForm">Оставить заявку</button></div>
 
   <div class="dim" id="dim"></div>
   <form class="sheet" id="sheet" autocomplete="on" novalidate>
@@ -37,7 +81,7 @@
     <label class="consent"><input type="checkbox" id="fOk"><span>Даю <a href="consent.html" target="_blank">согласие на обработку персональных данных</a></span></label>
     <p class="err" id="err" role="alert"></p>
     <button type="submit" class="btn wide" id="send">Отправить заявку</button>
-    <div class="note">Администратор подтвердит бронь. Статус будет виден на этой странице.</div>
+    <div class="note">Итоговую стоимость и бронь подтвердит администратор. Статус будет виден на этой странице.</div>
   </form>
 </body>
 </html>
