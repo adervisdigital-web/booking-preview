@@ -1,0 +1,5 @@
+.legal{max-width:680px;margin:0 auto;padding:28px 18px 40px;background:var(--bg);line-height:1.55;font-size:15px}
+.legal h1{font-family:Unbounded;font-weight:700;font-size:20px;line-height:1.25;margin-bottom:14px}
+.legal p{margin-top:12px;color:#d6d6e0}
+.legal b{color:var(--txt);font-weight:600}
+.legal a{color:#8fb0ff}

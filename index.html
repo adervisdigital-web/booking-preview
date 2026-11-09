@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<title>бронь залов</title>
+<meta name="description" content="Свободные часы во всех залах. Выберите зал и время и оставьте заявку.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<script src="demo-api.js"></script>
+<link rel="stylesheet" href="app.css">
+<script src="guest.js" defer></script>
+</head>
+<body class="guestpage">
+  <div class="toast" id="toast" role="status"><div class="ic" id="tIc">✓</div><div><b id="tT"></b><span id="tS"></span></div></div>
+  <header class="gtop"><h1 class="brand" id="name">БРОНЬ ЗАЛОВ</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div>
+    <div class="contacts"><a id="call" class="chip">Позвонить</a><a id="vk" class="chip" target="_blank" rel="noopener">Написать в ВК</a></div></header>
+  <nav class="days" id="days" aria-label="Выбор дня"></nav>
+  <section class="mine" id="mine"></section>
+  <div class="hint"><em>свободно</em><em class="b">занято</em><em class="s">ваш выбор</em></div>
+  <main id="halls" class="halls"></main>
+  <details class="programs" id="programsBox" hidden><summary>Программы и акции</summary><div id="programs"></div></details>
+  <footer class="foot"><a href="privacy.html">Политика обработки персональных данных</a></footer>
+  <div class="pad"></div>
+
+  <div class="bar" id="bar"><div class="w"><b id="barT"></b><span id="barS"></span></div>
+    <div class="row"><button type="button" class="btn" id="openForm">Оставить заявку</button></div></div>
+
+  <div class="dim" id="dim"></div>
+  <form class="sheet" id="sheet" autocomplete="on" novalidate>
+    <div class="sh"><h2>Заявка на бронь</h2><button type="button" class="x" id="closeForm" aria-label="Закрыть">×</button></div>
+    <div class="sum" id="sum"></div>
+    <label class="fld"><i>Имя</i><input id="fName" name="name" autocomplete="given-name" maxlength="60" placeholder="Как к вам обращаться" required></label>
+    <div class="two"><label class="fld"><i>Телефон</i><input id="fTel" name="tel" type="tel" autocomplete="tel" inputmode="tel" placeholder="+7" required></label><label class="fld sm"><i>Гостей</i><input id="fGu" inputmode="numeric" value="4" maxlength="2" required></label></div>
+    <label class="fld"><i>Пожелания</i><input id="fCom" maxlength="300" placeholder="День рождения, торт, караоке…"></label>
+    <label class="hp" aria-hidden="true">Сайт<input id="fWeb" tabindex="-1" autocomplete="off"></label>
+    <label class="consent"><input type="checkbox" id="fOk"><span>Даю <a href="consent.html" target="_blank">согласие на обработку персональных данных</a></span></label>
+    <p class="err" id="err" role="alert"></p>
+    <button type="submit" class="btn wide" id="send">Отправить заявку</button>
+    <div class="note">Администратор подтвердит бронь. Статус будет виден на этой странице.</div>
+  </form>
+</body>
+</html>

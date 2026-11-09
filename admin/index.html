@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="robots" content="noindex">
+<title>Брони: кабинет</title>
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<script src="../demo-api.js"></script>
+<link rel="stylesheet" href="../app.css">
+<link rel="stylesheet" href="admin.css">
+<script src="admin.js" defer></script>
+</head>
+<body>
+  <div class="toast" id="toast" role="status"><div class="ic" id="tIc">✓</div><div><b id="tT"></b><span id="tS"></span></div></div>
+
+  <form id="login" class="login" hidden>
+    <h1 class="brand">БРОНЬ ЗАЛОВ</h1><p class="role">кабинет администратора</p>
+    <label class="fld"><i>Логин</i><input id="lLogin" autocomplete="username" required></label>
+    <label class="fld"><i>Пароль</i><input id="lPass" type="password" autocomplete="current-password" required></label>
+    <p class="err" id="lErr" role="alert"></p>
+    <button class="btn wide">Войти</button>
+  </form>
+
+  <div class="admin" id="app" hidden>
+    <div class="am">
+      <div class="ah"><div class="brand sm" id="aName"></div><span class="role" id="who"></span>
+        <div class="dsel"><button type="button" id="prev" aria-label="Предыдущий день">‹</button><input type="date" id="pick" aria-label="Дата"><button type="button" id="next" aria-label="Следующий день">›</button><button type="button" class="today" id="today">Сегодня</button></div></div>
+      <div class="kpi"><div class="r"><i>Новые заявки</i><b id="kReq">0</b></div><div><i>Броней на день</i><b id="kB">0</b></div><div><i>Загрузка вечером</i><b id="kL">0%</b></div></div>
+      <div class="gridwrap"><div class="grid" id="grid"></div></div>
+      <div class="legend"><em class="l1">подтверждено</em><em class="l2">заявка гостя</em><em class="l4">предложено время</em><em class="l3">бронь по телефону</em><span>Нажмите на пустую клетку, чтобы записать бронь по телефону</span></div>
+      <div class="tools"><button type="button" id="csv">Выгрузить месяц в таблицу</button><button type="button" id="out">Выйти</button></div>
+    </div>
+    <aside class="side"><h2>Заявки <span id="sReq">0</span></h2><div id="reqs"></div></aside>
+  </div>
+
+  <div class="pop" id="pop"><b id="popT"></b>
+    <label class="fld"><i>Имя (необязательно)</i><input id="pName" maxlength="60"></label>
+    <label class="fld"><i>Телефон (необязательно)</i><input id="pTel" type="tel" inputmode="tel"></label>
+    <div class="pr"><button type="button" data-n="1">1 ч</button><button type="button" data-n="2">2 ч</button><button type="button" data-n="3">3 ч</button><button type="button" data-n="4">4 ч</button></div>
+    <button type="button" class="pc" id="popX">Отмена</button></div>
+
+  <dialog id="dlg"><div id="dlgBody"></div></dialog>
+</body>
+</html>
