@@ -183,7 +183,7 @@
   $('fGu').addEventListener('input', () => { drawSum(); drawBar(); });
 
   function fill() {
-    $('name').textContent = C.name; $('lead').textContent = C.lead || C.sub || '';
+    $('name').textContent = C.name; document.querySelector('.logo').textContent = C.name; $('lead').textContent = C.lead || C.sub || '';
     const tel = (el, show) => { if (C.phone) { el.textContent = show; el.href = `tel:${C.phoneHref}`; } else el.hidden = true; };
     tel($('topTel'), C.phone); tel($('tel'), C.phone);
     $('addr').textContent = C.address || ''; $('hoursText').textContent = C.hoursText || '';
