@@ -230,6 +230,27 @@
     $('programs').hidden = !C.programs?.length;
     $('programsList').innerHTML = (C.programs || []).map(p => `<div class="pr"><div><b>${E(p.name)}</b>${p.note ? `<i>${E(p.note)}</i>` : ''}</div><span>${E(p.price)}</span></div>`).join('');
     drawHallList();
+    // факты на первом экране
+    $('facts').innerHTML = (C.facts || []).map(([a, b]) => `<div><dt>${E(a)}</dt><dd>${E(b)}</dd></div>`).join('');
+    // поводы: фото зала и куда ведёт кнопка
+    const bySlug = s => C.halls.find(h => h.slug === s) || C.halls[0];
+    $('occasions').hidden = !(C.occasions || []).length;
+    $('occList').innerHTML = (C.occasions || []).map(o => { const h = bySlug(o.hall);
+      return `<a class="oc" href="#${E(o.to || 'halls')}">${h.photo ? `<img src="${E(h.photo)}" alt="" loading="lazy" decoding="async">` : ''}<span class="ocb"><b>${E(o.title)}</b><span>${E(o.text)}</span></span></a>`; }).join('');
+    $('faq').hidden = !(C.faq || []).length;
+    $('faqList').innerHTML = (C.faq || []).map(([q, a]) => `<details><summary>${E(q)}</summary><p>${E(a)}</p></details>`).join('');
+    // подвал
+    $('ftName').textContent = C.name; $('ftAddr').textContent = C.address || ''; $('ftHours').textContent = C.hoursText || '';
+    if (C.phone) { $('ftTel').textContent = C.phone; $('ftTel').href = `tel:${C.phoneHref}`; } else $('ftTel').hidden = true;
+    $('ftLinks').innerHTML = $('links').innerHTML;
+    drawStatus(); setInterval(drawStatus, 60000);
+  }
+  // «Открыто до 06:00» по времени заведения, а не по часам на телефоне гостя
+  function drawStatus() {
+    const h = new Date(Date.now() + (C.tzOffset ?? 5) * 3600000).getUTCHours(), close = (C.from + C.hours) % 24;
+    const open = C.from + C.hours > 24 ? (h >= C.from || h < close) : (h >= C.from && h < close);
+    $('status').className = 'status' + (open ? ' on' : '');
+    $('status').textContent = open ? `Открыто до ${String(close).padStart(2, '0')}:00` : `Откроемся в ${String(C.from).padStart(2, '0')}:00`;
   }
 
   (async () => {

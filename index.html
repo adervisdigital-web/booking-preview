@@ -22,8 +22,10 @@
 
   <header class="topbar">
     <a class="logo" href="#top"></a>
-    <nav aria-label="Разделы"><a href="#halls">Залы</a><a href="#book">Бронь</a><a href="#programs">Программы</a><a href="#contacts">Контакты</a></nav>
-    <a class="toptel" id="topTel"></a>
+    <span class="status" id="status"></span>
+    <nav aria-label="Разделы"><a href="#halls">Залы</a><a href="#occasions">Поводы</a><a href="#programs">Программы</a><a href="#faq">Вопросы</a><a href="#contacts">Контакты</a></nav>
+    <a class="toptel" id="topTel" data-hit="click:tel"></a>
+    <a class="topbook" href="#book">Забронировать</a>
   </header>
 
   <main>
@@ -31,9 +33,15 @@
       <div class="herotext">
         <h1 id="name"></h1>
         <div class="herosub"><p id="lead"></p><a class="cta" href="#book">Выбрать зал и время</a></div>
+        <dl class="facts" id="facts"></dl>
       </div>
       <div class="wallhead"><h2 id="wallTitle">Свободные залы</h2><p id="wallHint">Горят залы, которые ещё можно забронировать</p></div>
       <div class="wall" id="wall" aria-live="polite"></div>
+    </section>
+
+    <section class="block" id="occasions" aria-labelledby="occT">
+      <h2 class="h" id="occT">Поводы</h2>
+      <div class="occ" id="occList"></div>
     </section>
 
     <section class="block" id="halls" aria-labelledby="hallsT">
@@ -43,7 +51,11 @@
 
     <section class="block book" id="book" aria-labelledby="bookT">
       <h2 class="h" id="bookT">Выбрать время</h2>
-      <p class="bookhelp">Нажмите на свободный час, затем на соседние, чтобы забронировать дольше.</p>
+      <ol class="steps">
+        <li><b>Выберите день и свободный час</b><span>Нажмите на соседние часы, чтобы взять зал дольше</span></li>
+        <li><b>Оставьте имя и телефон</b><span>Стоимость посчитается сразу, с учётом дня и числа гостей</span></li>
+        <li><b>Администратор подтвердит</b><span>Статус брони появится на этой странице</span></li>
+      </ol>
       <div class="daysbar"><nav class="days" id="days" aria-label="Выбор дня"></nav><div class="hint"><em>свободно</em><em class="b">занято</em><em class="s">ваш выбор</em></div></div>
       <div class="mine" id="mine"></div>
       <div class="grid2" id="slots"></div>
@@ -53,6 +65,11 @@
       <h2 class="h" id="progT">Программы</h2>
       <div class="plist" id="programsList"></div>
       <p class="own" id="ownFood"></p>
+    </section>
+
+    <section class="block" id="faq" aria-labelledby="faqT">
+      <h2 class="h" id="faqT">Частые вопросы</h2>
+      <div class="faq" id="faqList"></div>
     </section>
 
     <section class="block contacts" id="contacts" aria-labelledby="contT">
@@ -73,7 +90,11 @@
     </section>
   </main>
 
-  <footer class="foot"><a href="privacy.html">Политика обработки персональных данных</a><a href="consent.html">Согласие на обработку данных</a></footer>
+  <footer class="foot">
+    <div class="fcol"><b class="flogo" id="ftName"></b><span id="ftAddr"></span><span id="ftHours"></span></div>
+    <div class="fcol"><a id="ftTel" data-hit="click:tel"></a><div class="flinks" id="ftLinks"></div></div>
+    <div class="fcol flegal"><a href="privacy.html">Политика обработки персональных данных</a><a href="consent.html">Согласие на обработку данных</a></div>
+  </footer>
   <div class="pad"></div>
 
   <div class="bar" id="bar"><div class="w"><b id="barT"></b><span id="barS"></span></div>
