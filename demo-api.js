@@ -93,6 +93,12 @@
       if (m[2] === 'decline') { if (!['request', 'offered'].includes(b.status)) throw new E(409, 'state', 'Подтверждённую бронь отменяет администратор'); b.status = 'cancelled'; save(d); }
       return view(b);
     }
+    if (path === 'public/hit') { const k = String(body.k || ''); d.hits = d.hits || {}; d.hits[k] = (d.hits[k] || 0) + 1; save(d); return { ok: true }; }
+    if (path === 'public/callback') { phoneOf(body.phone); if (!String(body.name || '').trim()) throw new E(400, 'bad_name', 'Укажите имя');
+      d.cbs = d.cbs || []; d.cbs.push({ id: ++d.seq, name: String(body.name).slice(0, 60), phone: phoneOf(body.phone), comment: String(body.comment || ''), created_at: Date.now(), done_at: null, done_by: '' }); save(d); return { ok: true }; }
+    if (path === 'admin/callbacks') return (d.cbs || []).slice().reverse();
+    if ((m = /^admin\/callbacks\/(\d+)\/done$/.exec(path))) { const c = (d.cbs || []).find(x => x.id === +m[1]); if (c) { c.done_at = Date.now(); c.done_by = 'Предпросмотр'; save(d); } return { ok: true }; }
+    if (path === 'admin/stats') { const h = d.hits || {}; return { days: 30, totals: h, views: [{ day: new Date().toISOString().slice(0, 10), n: h.view || 0 }] }; }
     if (path === 'admin/me' || path === 'admin/login') return { name: 'Предпросмотр' };
     if (path === 'admin/logout') return {};
     if (path === 'admin/day') {

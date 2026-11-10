@@ -47,7 +47,16 @@
       : '<p class="empty">Новых заявок нет.</p>';
   }
 
+  function drawCb(list) {
+    const open = list.filter(c => !c.done_at);
+    $('sCb').textContent = open.length;
+    $('cbs').innerHTML = list.length ? list.map(c => `<div class="req${c.done_at ? ' ok' : ''}"><div class="t">${new Date(c.created_at).toLocaleString('ru', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+      <b>${E(c.name)}</b><p><a href="tel:${E(c.phone)}">${E(c.phone)}</a>${c.comment ? `<br>«${E(c.comment)}»` : ''}</p>
+      ${c.done_at ? `<div class="st">Перезвонили · ${E(c.done_by)}</div>` : `<div class="a"><button type="button" class="yes" data-cb="${c.id}">Перезвонили</button></div>`}</div>`).join('')
+      : '<p class="empty">Просьб перезвонить нет.</p>';
+  }
   async function load(force) {
+    api('/callbacks').then(drawCb).catch(() => {});
     const d = await api(`/day?date=${S.date}`), key = JSON.stringify(d);
     S.day = d;
     if (force || key !== S.last) { S.last = key; if (!S.pop || force) draw(); }
@@ -123,6 +132,21 @@
       const body = { hall_id: +$('mH').value, date: $('mD').value, start: +$('mS').value, hours: +$('mN').value };
       try { await act(+sv.dataset.id, sv.dataset.save, body); toast(sv.dataset.save === 'offer' ? 'Предложили гостю' : 'Перенесли', sv.dataset.save === 'offer' ? 'Позвоните гостю или отправьте ссылку' : ''); }
       catch (e) { if (e instanceof Unauth) return showLogin(); $('mErr').textContent = e.message; }
+      return;
+    }
+    const cb = t.closest('[data-cb]'); if (cb) { try { await api(`/callbacks/${cb.dataset.cb}/done`, {}); drawCb(await api('/callbacks')); toast('Отмечено'); } catch (e) { onErr(e); } return; }
+    if (t.closest('#statsBtn')) {
+      try { const s = await api('/stats?days=30'), T = s.totals, n = k => T[k] || 0;
+        const halls = C.halls.map(h => [h.name, n('hall:' + h.slug)]).sort((a, b) => b[1] - a[1]);
+        const row = (a, b) => `<div><dt>${a}</dt><dd>${b}</dd></div>`;
+        const max = Math.max(1, ...s.views.map(v => v.n));
+        $('dlgBody').innerHTML = `<h3>Статистика сайта за 30 дней</h3>
+          <div class="spark">${s.views.map(v => `<i style="height:${Math.max(4, v.n / max * 100)}%" title="${E(v.day)}: ${v.n}"></i>`).join('') || '<p class="empty">Данных пока нет</p>'}</div>
+          <dl class="srows">${row('Просмотры сайта', n('view'))}${row('Начали бронь', n('book:open'))}${row('Отправили заявку', n('book:sent'))}${row('Заказали звонок', n('callback'))}
+          ${row('Нажали «Позвонить»', n('click:tel'))}${row('Перешли во ВКонтакте', n('click:vk'))}${row('Перешли в MAX', n('click:max'))}${row('Перешли в Instagram', n('click:ig'))}${row('Открыли Яндекс Карты', n('click:map'))}</dl>
+          <h3 class="sh3">Какие залы смотрят</h3><dl class="srows">${halls.map(h => row(E(h[0]), h[1])).join('')}</dl>
+          <button type="button" class="btn g wide" data-close>Закрыть</button>`;
+        $('dlg').showModal(); } catch (e) { onErr(e); }
       return;
     }
     if (t.closest('#prev')) return go(addDays(S.date, -1));

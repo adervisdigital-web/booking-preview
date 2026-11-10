@@ -68,13 +68,28 @@
   }
   function drawHallList() {
     $('hallList').innerHTML = C.halls.map(x => `<article class="hl" id="info-${x.id}">
-      ${x.photo ? `<img class="hlph" src="${E(x.photo)}" alt="Зал ${E(x.name)}" loading="lazy" decoding="async">` : `<div class="hlph" style="background:linear-gradient(120deg,${E(x.c1)},${E(x.c2)})"></div>`}
+      <button type="button" class="hlimg" data-more="${x.id}" aria-label="Подробнее о зале ${E(x.name)}">
+        ${x.photo ? `<img class="hlph" src="${E(x.photo)}" alt="" loading="lazy" decoding="async">` : `<span class="hlph" style="background:linear-gradient(120deg,${E(x.c1)},${E(x.c2)})"></span>`}
+        ${x.video ? '<span class="badge">видео 360°</span>' : x.gallery.length ? `<span class="badge">${x.gallery.length + 1} фото</span>` : ''}</button>
       <div class="hlb"><div class="hltop"><h3>${E(x.name)}</h3><p class="cap">до ${x.cap} человек</p></div>
       <p class="what">${E(x.what)}</p>
       <dl class="rates">${rateLines(x)}</dl>
       ${x.extra ? `<p class="extra">Сверх ${x.cap} человек: +${x.extra} ₽ в час за гостя</p>` : ''}
-      <button type="button" class="pick" data-pick="${x.id}">Выбрать время</button></div></article>`).join('');
+      <div class="hlact"><button type="button" class="pick" data-pick="${x.id}">Выбрать время</button><button type="button" class="more" data-more="${x.id}">Подробнее о зале</button></div></div></article>`).join('');
   }
+  // Карточка зала, как товар во ВКонтакте: фото, видео, описание, что есть в зале, цены
+  function openMore(id) {
+    const x = hall(id), media = [x.photo, ...x.gallery].filter(Boolean);
+    $('hdBody').innerHTML = `<div class="hdmedia">${x.video ? `<video src="${E(x.video)}" controls playsinline preload="metadata"${x.photo ? ` poster="${E(x.photo)}"` : ''}></video>` : media.length ? `<img id="hdMain" src="${E(media[0])}" alt="Зал ${E(x.name)}">` : ''}
+        ${media.length > 1 ? `<div class="thumbs">${media.map((m, i) => `<button type="button" data-thumb="${E(m)}"${i ? '' : ' class="on"'}><img src="${E(m)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}</div>
+      <div class="hdtext"><div class="hltop"><h3 id="hdT">${E(x.name)}</h3><p class="cap">до ${x.cap} человек</p></div>
+        ${x.desc ? `<p class="lead2">${E(x.desc)}</p>` : ''}<p class="what">${E(x.what)}</p>${x.games ? `<p class="what">${E(x.games)}</p>` : ''}
+        <dl class="rates">${rateLines(x)}</dl>${x.extra ? `<p class="extra">Сверх ${x.cap} человек: +${x.extra} ₽ в час за гостя</p>` : ''}
+        <div class="hlact"><button type="button" class="pick" data-pick="${x.id}">Выбрать время</button><button type="button" class="more" data-close-hall>Закрыть</button></div></div>
+      <button type="button" class="x hdx" data-close-hall aria-label="Закрыть">×</button>`;
+    $('hallDlg').showModal(); hit('hall:' + x.slug);
+  }
+  const hit = k => { fetch('/api/public/hit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ k }), keepalive: true }).catch(() => {}); };
   function drawDays() {
     $('days').innerHTML = Array.from({ length: 14 }, (_, k) => { const s = addDays(C.today, k), d = asDate(s);
       return `<button type="button" class="day${s === st.date ? ' on' : ''}" data-day="${s}"><b>${d.getUTCDate()}</b><i>${k === 0 ? 'сегодня' : WD[d.getUTCDay()]}</i></button>`; }).join('');
@@ -138,7 +153,16 @@
     const over = x.extra && g > x.cap ? `<br>Сверх ${x.cap} человек: +${x.extra} ₽ в час за каждого гостя` : '';
     $('sum').innerHTML = `<b>${E(x.name)}</b>, ${E(dayName(st.date))}, <b>${span(s.a, n)}</b><br>${n} ${hrsWord(n)}, примерно <b>${rub(costOf(s))}</b>${over}`;
   }
-  function openForm() { if (!st.sel) return; drawSum(); form(true); setTimeout(() => $('fName').focus({ preventScroll: true }), 300); }
+  function openForm() { if (!st.sel) return; drawSum(); form(true); hit('book:open'); setTimeout(() => $('fName').focus({ preventScroll: true }), 300); }
+  const cbForm = on => { document.body.classList.toggle('cbform', on); if (!on) $('cbErr').textContent = ''; else setTimeout(() => $('cbName').focus({ preventScroll: true }), 300); };
+  async function sendCb(ev) {
+    ev.preventDefault();
+    if (!$('cbOk').checked) { $('cbErr').textContent = 'Отметьте согласие на обработку персональных данных'; return; }
+    $('cbSend').disabled = true; $('cbErr').textContent = '';
+    try { await api('/callback', { name: $('cbName').value, phone: $('cbTel').value, comment: $('cbCom').value, consent: true, website: $('cbWeb').value });
+      cbForm(false); toast('Заявка на звонок принята', 'Администратор скоро перезвонит', 'ok'); }
+    catch (e) { $('cbErr').textContent = e.message; } finally { $('cbSend').disabled = false; }
+  }
   async function send(ev) {
     ev.preventDefault();
     const s = st.sel; if (!s) return;
@@ -147,7 +171,7 @@
     try {
       const r = await api('/requests', { hall: hall(s.id).slug, date: st.date, start: s.a, hours: s.b - s.a + 1, name: $('fName').value, phone: $('fTel').value, guests: parseInt($('fGu').value, 10), comment: $('fCom').value, consent: true, website: $('fWeb').value });
       store.set([...store.get(), r.token]);
-      st.mine.push(r); st.sel = null; form(false); drawMine();
+      st.mine.push(r); st.sel = null; form(false); drawMine(); hit('book:sent');
       toast('Заявка отправлена', 'Администратор подтвердит бронь', '');
       $('book').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
       await Promise.all([loadDay(), loadWall()]);
@@ -167,9 +191,15 @@
     if (d) { st.date = d.dataset.day; st.sel = null; drawDays(); drawBar(); loadDay().catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const sl = t.closest('.sl'); if (sl && !sl.disabled) { tap(+sl.dataset.id, +sl.dataset.i); return; }
     const w = t.closest('[data-wall]'); if (w) { openHall(+w.dataset.wall, wall.date, w.classList.contains('on')).catch(e => toast('Нет связи', e.message, 'alt')); return; }
-    const p = t.closest('[data-pick]'); if (p) { openHall(+p.dataset.pick, st.date, false).catch(e => toast('Нет связи', e.message, 'alt')); return; }
+    const p = t.closest('[data-pick]'); if (p) { if ($('hallDlg').open) $('hallDlg').close(); openHall(+p.dataset.pick, st.date, false).catch(e => toast('Нет связи', e.message, 'alt')); return; }
+    const mo = t.closest('[data-more]'); if (mo) { openMore(+mo.dataset.more); return; }
+    const th = t.closest('[data-thumb]'); if (th) { $('hdMain').src = th.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach(b => b.classList.toggle('on', b === th)); return; }
+    if (t.closest('[data-close-hall]') || t === $('hallDlg')) { $('hallDlg').close(); return; }
+    if (t.closest('#openCb')) { cbForm(true); return; }
+    if (t.closest('[data-close-cb]')) { cbForm(false); return; }
+    const hk = t.closest('[data-hit]'); if (hk) hit(hk.dataset.hit);
     if (t.closest('#openForm')) { openForm(); return; }
-    if (t.closest('#closeForm') || t.closest('#dim')) { form(false); return; }
+    if (t.closest('#closeForm') || t.closest('#dim')) { form(false); cbForm(false); return; }
     const acc = t.closest('[data-acc]'), dec = t.closest('[data-dec]');
     if (acc || dec) {
       const token = (acc || dec).dataset[acc ? 'acc' : 'dec'];
@@ -178,8 +208,9 @@
       await loadMine().catch(() => {}); await loadDay().catch(() => {}); await loadWall().catch(() => {});
     }
   });
-  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && document.body.classList.contains('form')) form(false); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') { form(false); cbForm(false); } });
   $('sheet').addEventListener('submit', send);
+  $('cbSheet').addEventListener('submit', sendCb);
   $('fGu').addEventListener('input', () => { drawSum(); drawBar(); });
 
   function fill() {
@@ -188,7 +219,13 @@
     tel($('topTel'), C.phone); tel($('tel'), C.phone);
     $('addr').textContent = C.address || ''; $('hoursText').textContent = C.hoursText || '';
     if (C.mapUrl) $('map').href = C.mapUrl; else $('map').hidden = true;
-    if (C.vk) $('vk').href = C.vk; else $('vk').hidden = true;
+    const L = [[C.vk, 'ВКонтакте', 'vk'], [C.max, 'MAX', 'max'], [C.instagram, 'Instagram*', 'ig']].filter(l => l[0]);
+    $('links').innerHTML = L.map(([u, n, k]) => `<a class="chip2" href="${E(u)}" target="_blank" rel="noopener" data-hit="click:${k}">${n}</a>`).join('');
+    $('igNote').hidden = !C.instagram;
+    if (C.yandexOrgId && /^\d+$/.test(C.yandexOrgId)) {
+      $('ymap').hidden = false; $('ymap').innerHTML = `<iframe src="https://yandex.ru/map-widget/v1/?oid=${C.yandexOrgId}&ol=biz&z=16" title="Мы на карте" loading="lazy"></iframe>`;
+      $('reviews').hidden = false; $('yrev').innerHTML = `<iframe src="https://yandex.ru/maps-reviews-widget/${C.yandexOrgId}?comments" title="Отзывы на Яндекс Картах" loading="lazy"></iframe>`;
+    }
     $('ownFood').textContent = C.ownFood || '';
     $('programs').hidden = !C.programs?.length;
     $('programsList').innerHTML = (C.programs || []).map(p => `<div class="pr"><div><b>${E(p.name)}</b>${p.note ? `<i>${E(p.note)}</i>` : ''}</div><span>${E(p.price)}</span></div>`).join('');
@@ -200,7 +237,7 @@
     catch { $('wall').innerHTML = '<p class="empty">Не удалось загрузить расписание. Обновите страницу или позвоните нам.</p>'; return; }
     const link = new URLSearchParams(location.search).get('b');
     if (link && /^[\w-]{10,40}$/.test(link) && !store.get().includes(link)) store.set([...store.get(), link]);
-    fill();
+    fill(); hit('view');
     try {
       await loadWall();
       st.date = wall.date; drawDays();

@@ -58,9 +58,18 @@
     <section class="block contacts" id="contacts" aria-labelledby="contT">
       <h2 class="h" id="contT">Как нас найти</h2>
       <div class="cgrid">
-        <div><p class="big" id="addr"></p><p id="hoursText"></p><a class="lnk2" id="map" target="_blank" rel="noopener">Открыть на карте</a></div>
-        <div><a class="big tel" id="tel"></a><p>Бронь по телефону и в сообщениях</p><a class="lnk2" id="vk" target="_blank" rel="noopener">Написать ВКонтакте</a></div>
+        <div><p class="big" id="addr"></p><p id="hoursText"></p><a class="lnk2" id="map" target="_blank" rel="noopener" data-hit="click:map">Открыть на Яндекс Картах</a></div>
+        <div><a class="big tel" id="tel" data-hit="click:tel"></a><p>Бронь по телефону и в сообщениях</p>
+          <div class="links" id="links"></div>
+          <button type="button" class="cta2" id="openCb">Заказать звонок</button></div>
       </div>
+      <p class="meta-note" id="igNote" hidden>Instagram принадлежит компании Meta, деятельность которой признана экстремистской и запрещена в России.</p>
+      <div class="ymap" id="ymap" hidden></div>
+    </section>
+
+    <section class="block" id="reviews" aria-labelledby="revT" hidden>
+      <h2 class="h" id="revT">Отзывы гостей</h2>
+      <div class="yrev" id="yrev"></div>
     </section>
   </main>
 
@@ -83,5 +92,19 @@
     <button type="submit" class="btn wide" id="send">Отправить заявку</button>
     <div class="note">Итоговую стоимость и бронь подтвердит администратор. Статус будет виден на этой странице.</div>
   </form>
+
+  <form class="sheet" id="cbSheet" autocomplete="on" novalidate>
+    <div class="sh"><h2>Заказать звонок</h2><button type="button" class="x" data-close-cb aria-label="Закрыть">×</button></div>
+    <div class="sum">Перезвоним, ответим на вопросы и поможем выбрать зал.</div>
+    <label class="fld"><i>Имя</i><input id="cbName" autocomplete="given-name" maxlength="60" placeholder="Как к вам обращаться" required></label>
+    <label class="fld"><i>Телефон</i><input id="cbTel" type="tel" autocomplete="tel" inputmode="tel" placeholder="+7" required></label>
+    <label class="fld"><i>Удобное время или вопрос</i><input id="cbCom" maxlength="300" placeholder="Например, после 18:00"></label>
+    <label class="hp" aria-hidden="true">Сайт<input id="cbWeb" tabindex="-1" autocomplete="off"></label>
+    <label class="consent"><input type="checkbox" id="cbOk"><span>Даю <a href="consent.html" target="_blank">согласие на обработку персональных данных</a></span></label>
+    <p class="err" id="cbErr" role="alert"></p>
+    <button type="submit" class="btn wide" id="cbSend">Заказать звонок</button>
+  </form>
+
+  <dialog class="hdlg" id="hallDlg" aria-labelledby="hdT"><div id="hdBody"></div></dialog>
 </body>
 </html>

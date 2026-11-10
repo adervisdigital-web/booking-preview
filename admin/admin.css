@@ -73,3 +73,11 @@ dialog .copy{width:100%;background:var(--card2);border:1px solid var(--line);bor
   .kpi{gap:6px}.kpi div{padding:8px 10px}.kpi b{font-size:18px}
   .legend span{margin-left:0;width:100%}
 }
+.h2b{margin-top:26px}
+.side .req.ok{opacity:.55}.side .req.ok .st{color:#3ad17f}
+dialog .spark{display:flex;align-items:flex-end;gap:2px;height:90px;margin-top:14px;padding:8px;background:#0e0e14;border-radius:10px}
+dialog .spark i{flex:1;background:var(--red);border-radius:2px 2px 0 0;min-width:3px}
+dialog .srows{margin-top:12px;border-top:1px solid var(--line)}
+dialog .srows div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+dialog .srows dt{color:#c9c9d6}dialog .srows dd{font-weight:600}
+dialog .sh3{margin-top:18px}
