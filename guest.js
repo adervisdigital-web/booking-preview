@@ -70,7 +70,7 @@
     $('hallList').innerHTML = C.halls.map(x => `<article class="hl" id="info-${x.id}">
       <button type="button" class="hlimg" data-more="${x.id}" aria-label="Подробнее о зале ${E(x.name)}">
         ${x.photo ? `<img class="hlph" src="${E(x.photo)}" alt="" loading="lazy" decoding="async">` : `<span class="hlph" style="background:linear-gradient(120deg,${E(x.c1)},${E(x.c2)})"></span>`}
-        ${x.video ? '<span class="badge">видео 360°</span>' : x.gallery.length ? `<span class="badge">${x.gallery.length + 1} фото</span>` : ''}</button>
+        ${x.video ? '<span class="badge">видео 360°</span>' : (x.gallery || []).length ? `<span class="badge">${x.gallery.length + 1} фото</span>` : ''}</button>
       <div class="hlb"><div class="hltop"><h3>${E(x.name)}</h3><p class="cap">до ${x.cap} человек</p></div>
       <p class="what">${E(x.what)}</p>
       <dl class="rates">${rateLines(x)}</dl>
@@ -79,7 +79,7 @@
   }
   // Карточка зала, как товар во ВКонтакте: фото, видео, описание, что есть в зале, цены
   function openMore(id) {
-    const x = hall(id), media = [x.photo, ...x.gallery].filter(Boolean);
+    const x = hall(id), media = [x.photo, ...(x.gallery || [])].filter(Boolean);
     $('hdBody').innerHTML = `<div class="hdmedia">${x.video ? `<video src="${E(x.video)}" controls playsinline preload="metadata"${x.photo ? ` poster="${E(x.photo)}"` : ''}></video>` : media.length ? `<img id="hdMain" src="${E(media[0])}" alt="Зал ${E(x.name)}">` : ''}
         ${media.length > 1 ? `<div class="thumbs">${media.map((m, i) => `<button type="button" data-thumb="${E(m)}"${i ? '' : ' class="on"'}><img src="${E(m)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}</div>
       <div class="hdtext"><div class="hltop"><h3 id="hdT">${E(x.name)}</h3><p class="cap">до ${x.cap} человек</p></div>
