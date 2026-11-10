@@ -26,7 +26,7 @@
   async function loadCfg() {
     if (cfg) return cfg;
     let c = {};
-    if (folder) c = await realFetch(`${BASE}${folder}/site-demo.json`, { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+    if (folder) c = await realFetch(`${BASE}${folder}/site-demo2.json`, { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).catch(() => ({}));
     const halls = (c.halls || [{ n: 'Зал 1', p: 1000 }, { n: 'Зал 2', p: 800 }, { n: 'Зал 3', p: 1200 }])
       .map((x, i) => ({ id: i + 1, slug: `h${i + 1}`, name: x.n, price: x.p, c1: (x.c || ['#ff2d3a'])[0], c2: (x.c || [0, '#2f4dff'])[1], photo: x.photo || '', gallery: x.gallery || [], video: x.video || '', desc: x.desc || '', games: x.games || '', cap: x.cap || 10, extra: x.extra || 0, what: x.what || '',
         rates: x.rates || { day: x.p, night: x.p, weekend: x.p } }));
