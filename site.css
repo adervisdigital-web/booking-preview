@@ -264,3 +264,21 @@ h1{font-family:'Dela Gothic';font-weight:400;font-size:clamp(46px,8.8vw,150px);l
 .thumbs .tplay{position:absolute;left:4px;bottom:4px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.72);color:#fff;font-size:11px;font-weight:700;line-height:1.4}
 @media (max-width:520px){ .logo{font-size:0;gap:0} .logo img{height:38px} }
 @media (max-width:1100px){ .topbar .topbook{margin-left:auto} .topbar .toptel + .topbook{margin-left:0} }
+
+/* 12.11 структура страницы (Артём: «непонятно, где что начинается и где заканчивается»):
+   разделы полосами с разделительными линиями, номер раздела над заголовком, залы в карточках, подвал своим фоном */
+:root{--band:#120e1b;--card:#1b1628;--card-line:rgba(255,255,255,.1)}
+main{counter-reset:sec}
+.hero{border-bottom:1px solid var(--rule)}
+.block{padding-top:clamp(56px,7vw,104px);padding-bottom:clamp(56px,7vw,104px)}
+#halls,.duo{background:var(--band);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.duo .block{padding-top:clamp(56px,7vw,104px);padding-bottom:clamp(56px,7vw,104px)}
+.block .h{counter-increment:sec}
+.block .h::before{content:counter(sec,decimal-leading-zero);display:block;margin-bottom:12px;font-family:system-ui,sans-serif;font-size:14px;font-weight:700;letter-spacing:.14em;color:var(--neon-r)}
+#hallsT::after{order:2}
+.hl{background:var(--card);border:1px solid var(--card-line);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.hl:hover{border-color:rgba(255,255,255,.22)}
+.hl .hlimg,.hl .hlph{border-radius:0}
+.hl .hlb{padding:16px clamp(16px,1.6vw,22px) clamp(18px,1.8vw,22px)}
+.foot{margin-top:0;background:#07060c}
+@media (max-width:760px){ .row2{padding:14px 0 16px;border-top:1px solid var(--rule)} .row2:first-child{border-top:0} .row2 .rn b{font-size:17px} }
