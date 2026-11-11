@@ -252,3 +252,4 @@ h1{font-family:'Dela Gothic';font-weight:400;font-size:clamp(46px,8.8vw,150px);l
   .hlist .hl{flex:0 0 86%;scroll-snap-align:start;min-width:0}
   #hallsT::after{content:'листайте вбок →';display:block;margin-top:8px;font-family:system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--smoke)}
 }
+@media (min-width:1100px){ .duo .h{font-size:clamp(30px,3.7vw,56px);white-space:nowrap} }
