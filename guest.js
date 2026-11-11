@@ -95,9 +95,31 @@
     $('hallDlg').showModal(); hit('hall:' + x.slug);
   }
   const hit = k => { fetch('/api/public/hit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ k }), keepalive: true }).catch(() => {}); };
+  // дни: у каждого цифра, сколько залов подходит под гостей и длительность (расписание 14 дней в кеше на минуту)
+  const dayCache = {};
+  const fitsDay = d => C.halls.filter(x => { if (guests() > x.cap) return false; const w = bestWin(d, x.id, st.dur); return w && (st.dur >= 99 || w.n >= st.dur); }).length;
   function drawDays() {
-    $('days').innerHTML = Array.from({ length: 14 }, (_, k) => { const s = addDays(C.today, k), d = asDate(s);
-      return `<button type="button" class="day${s === st.date ? ' on' : ''}" data-day="${s}"><b>${d.getUTCDate()}</b><i>${k === 0 ? 'сегодня' : WD[d.getUTCDay()]}</i></button>`; }).join('');
+    $('days').innerHTML = Array.from({ length: 14 }, (_, k) => { const s = addDays(C.today, k), d = asDate(s), c = dayCache[s], n = c ? fitsDay(c.d) : null;
+      const lab = n === null ? '' : n ? `, подходит залов: ${n}` : ', под ваши условия мест нет';
+      return `<button type="button" class="day${s === st.date ? ' on' : ''}${n === 0 ? ' none' : ''}" data-day="${s}" aria-label="${E(dayName(s))}${lab}"><b>${d.getUTCDate()}</b><i>${k === 0 ? 'сегодня' : WD[d.getUTCDay()]}</i>${n ? `<u class="av">${n}</u>` : ''}</button>`; }).join('');
+  }
+  async function loadAvail() {
+    const now = Date.now(), dates = Array.from({ length: 14 }, (_, k) => addDays(C.today, k)).filter(s => !dayCache[s] || now - dayCache[s].t > 60000);
+    await Promise.all(dates.map(s => api(`/day?date=${s}`).then(d => { dayCache[s] = { d, t: Date.now() }; }).catch(() => {})));
+    drawDays();
+  }
+  // запоминаем гостя: число гостей, длительность, имя, телефон
+  const PREF = 'chp_prefs';
+  const prefs = { get() { try { return JSON.parse(localStorage.getItem(PREF)) || {}; } catch { return {}; } }, set(p) { try { localStorage.setItem(PREF, JSON.stringify({ ...prefs.get(), ...p })); } catch {} } };
+  // телефон в виде +7 (XXX) XXX-XX-XX; сервер всё равно берёт только цифры
+  function maskTel(el) {
+    let n = el.value.replace(/\D/g, ''); if (!n) { el.value = ''; return; }
+    if (n[0] === '7' && el.value.trim().startsWith('+7')) n = n.slice(1);            // наш префикс +7
+    else if (n.length === 11 && (n[0] === '8' || n[0] === '7')) n = n.slice(1);     // вставили 8XXXXXXXXXX целиком
+    if (n.length === 11 && n[0] === '8') n = n.slice(1);                             // набрали 8 после +7: это не код города
+    n = n.slice(0, 10);
+    const p = [n.slice(0, 3), n.slice(3, 6), n.slice(6, 8), n.slice(8, 10)];
+    el.value = '+7' + (p[0] ? ` (${p[0]}` : '') + (p[0].length === 3 ? ')' : '') + (p[1] ? ` ${p[1]}` : '') + (p[2] ? `-${p[2]}` : '') + (p[3] ? `-${p[3]}` : '');
   }
   // ---- подбор вечера: гости, длительность, повод → залы сортируются, у каждого готовое окно и цена
   const DUR = [[2, '2 ч'], [3, '3 ч'], [4, '4 ч'], [6, '6 ч'], [99, 'до утра']];
@@ -137,8 +159,13 @@
       return `<article class="row2 f-${r.f}${mine ? ' on' : ''}${r.rank > 5 ? ' faded' : ''}" id="b-${x.id}">
       <div class="rn">${x.photo ? `<img src="${E(x.photo)}" alt="" loading="lazy" decoding="async">` : ''}<div><b>${E(x.name)}${x.slug === rec ? '<em class="rec">советуем</em>' : ''}</b><span class="fit">${fitTxt}</span>
         <span class="wtime${r.w && r.full ? '' : ' part'}">${r.text}</span>${r.w ? `<button type="button" class="take" data-take="${x.id}" data-a="${r.w.a}" data-n="${r.w.n}">${mine ? 'Выбрано' : 'Взять'}</button>` : ''}</div></div>
-      <div class="slots" style="--hours:${C.hours}">${Array.from({ length: C.hours }, (_, i) => { const b = taken(x.id, i), sel = !b && mine && i >= st.sel.a && i <= st.sel.b;
-        return `<button type="button" class="sl${b ? ' b' : sel ? ' s' : ''}${night(i) ? ' n' : ''}" data-id="${x.id}" data-i="${i}"${b ? ' disabled' : ''} aria-label="${E(x.name)}, ${hh(i)}:00, ${b ? 'занято' : 'свободно'}">${hh(i)}</button>`; }).join('')}</div></article>`; }).join('');
+      <div class="slots" style="--hours:${C.hours}">${Array.from({ length: C.hours }, (_, i) => { const past = i < day.past, b = taken(x.id, i), sel = !b && mine && i >= st.sel.a && i <= st.sel.b;
+        // шкала: края свободных отрезков и выбора скруглены, прошедшие часы отдельно от занятых, черта «сейчас»
+        const free = j => j >= 0 && j < C.hours && !taken(x.id, j), inSel = j => mine && j >= st.sel.a && j <= st.sel.b;
+        let cls = past ? ' p b' : b ? ' b' : sel ? ' s' : '';
+        if (!b) cls += (sel ? (!inSel(i - 1) ? ' rs' : '') + (!inSel(i + 1) ? ' re' : '') : (!free(i - 1) || inSel(i - 1) ? ' rs' : '') + (!free(i + 1) || inSel(i + 1) ? ' re' : ''));
+        if (night(i)) cls += ' n'; if (st.date === C.today && i === day.past && day.past > 0) cls += ' now';
+        return `<button type="button" class="sl${cls}" data-id="${x.id}" data-i="${i}"${b ? ' disabled' : ''} aria-label="${E(x.name)}, ${hh(i)}:00, ${past ? 'прошло' : b ? 'занято' : sel ? 'выбрано' : 'свободно'}">${hh(i)}</button>`; }).join('')}</div></article>`; }).join('');
   }
   // ничего не подходит на выбранный день → ищем ближайшую дату (до 14 дней вперёд)
   let scan = 0;
@@ -160,7 +187,16 @@
     $('pOcc').innerHTML = occ.map(o => `<button type="button" class="chip${st.occ === o.title ? ' on' : ''}" data-occ="${E(o.title)}" aria-pressed="${st.occ === o.title}">${E(o.title)}</button>`).join('');
     const o = occ.find(q => q.title === st.occ); $('planHint').hidden = !o; $('planHint').textContent = o ? o.text : '';
   }
-  function setGuests(n) { $('fGu').value = Math.max(1, Math.min(60, n)); drawPlan(); drawSlots(); drawBar(); }
+  function setGuests(n) { $('fGu').value = Math.max(1, Math.min(60, n)); prefs.set({ g: guests() }); drawPlan(); drawSlots(); drawBar(); drawDays(); }
+  // нижняя панель: −1 ч / +1 ч без прицеливания в клетки
+  function adjust(k) {
+    const s = st.sel; if (!s) return;
+    if (k < 0) { if (s.b > s.a) s.b--; else { toast('Меньше часа нельзя', 'Нажмите × чтобы снять выбор', 'alt'); return; } }
+    else if (s.b + 1 < C.hours && !taken(s.id, s.b + 1)) s.b++;
+    else if (s.a > 0 && !taken(s.id, s.a - 1)) s.a--;
+    else { toast('Дальше зал занят', 'Можно выбрать другой зал или день', 'alt'); return; }
+    drawSlots(); drawBar(); if (document.body.classList.contains('form')) drawSum();
+  }
   function drawBar() {
     const s = st.sel; $('bar').classList.toggle('show', !!s);
     if (!s) return;
@@ -176,9 +212,9 @@
       ${q.status === 'request' ? `<button type="button" class="lnk" data-dec="${E(q.token)}">Отменить заявку</button>` : ''}</div>`; }).join('');
   }
   async function loadDay() {
-    day = await api(`/day?date=${st.date}`);
+    day = await api(`/day?date=${st.date}`); dayCache[st.date] = { d: day, t: Date.now() };
     if (st.sel) for (let i = st.sel.a; i <= st.sel.b; i++) if (taken(st.sel.id, i)) { st.sel = null; toast('Это время только что заняли', 'Выберите другое', 'alt'); break; }
-    drawSlots(); drawBar();
+    drawSlots(); drawBar(); drawDays();
   }
   async function loadMine() {
     const tokens = store.get(), out = [], keep = [];
@@ -232,7 +268,7 @@
     $('send').disabled = true; $('err').textContent = '';
     try {
       const r = await api('/requests', { hall: hall(s.id).slug, date: st.date, start: s.a, hours: s.b - s.a + 1, name: $('fName').value, phone: $('fTel').value, guests: parseInt($('fGu').value, 10), comment: $('fCom').value, consent: true, website: $('fWeb').value });
-      store.set([...store.get(), r.token]);
+      store.set([...store.get(), r.token]); prefs.set({ name: $('fName').value.trim(), tel: $('fTel').value });
       st.mine.push(r); st.sel = null; form(false); drawMine(); hit('book:sent');
       toast('Заявка отправлена', 'Администратор подтвердит бронь', '');
       $('book').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
@@ -254,7 +290,9 @@
     const sl = t.closest('.sl'); if (sl && !sl.disabled) { tap(+sl.dataset.id, +sl.dataset.i); return; }
     const tk = t.closest('[data-take]'); if (tk) { const id = +tk.dataset.take, a = +tk.dataset.a; st.sel = { id, a, b: a + +tk.dataset.n - 1 }; drawSlots(); drawBar(); hit('book:take'); return; }
     const gb = t.closest('[data-g]'); if (gb) { setGuests(guests() + +gb.dataset.g); return; }
-    const du = t.closest('[data-dur]'); if (du) { st.dur = +du.dataset.dur; drawPlan(); drawSlots(); return; }
+    const du = t.closest('[data-dur]'); if (du) { st.dur = +du.dataset.dur; prefs.set({ dur: st.dur }); drawPlan(); drawSlots(); drawDays(); return; }
+    const aj = t.closest('[data-adj]'); if (aj) { adjust(+aj.dataset.adj); return; }
+    if (t.closest('#barX')) { st.sel = null; drawSlots(); drawBar(); return; }
     const oc = t.closest('[data-occ]'); if (oc) { st.occ = st.occ === oc.dataset.occ ? null : oc.dataset.occ;
       const o = (C.occasions || []).find(q => q.title === st.occ), h = o && C.halls.find(x => x.slug === o.hall);
       if (h && guests() > h.cap) setGuests(h.cap);
@@ -280,7 +318,9 @@
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') { form(false); cbForm(false); } });
   $('sheet').addEventListener('submit', send);
   $('cbSheet').addEventListener('submit', sendCb);
-  $('fGu').addEventListener('input', () => { drawSum(); drawBar(); $('pGu').textContent = guests(); drawSlots(); });
+  $('fGu').addEventListener('input', () => { drawSum(); drawBar(); $('pGu').textContent = guests(); prefs.set({ g: guests() }); drawSlots(); drawDays(); });
+  for (const id of ['fTel', 'cbTel']) { const el = $(id); if (el) { el.addEventListener('input', () => maskTel(el)); el.addEventListener('focus', () => { if (!el.value) el.value = '+7 '; }); } }
+  { const p = prefs.get(); if (p.g) $('fGu').value = p.g; if ([2, 3, 4, 6, 99].includes(p.dur)) st.dur = p.dur; if (p.name) $('fName').value = p.name; if (p.tel) { $('fTel').value = p.tel; if ($('cbTel')) $('cbTel').value = p.tel; } if (p.name && $('cbName')) $('cbName').value = p.name; }
 
   function fill() {
     $('name').textContent = C.name; { const lg = document.querySelector('.logo'); let tn = [...lg.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()) || [...lg.childNodes].find(n => n.nodeType === 3);
@@ -312,7 +352,7 @@
     $('facts').innerHTML = (C.facts || []).map(([a, b]) => `<div><dt>${E(a)}</dt><dd>${E(b)}</dd></div>`).join('');
     // поводы: фото зала и куда ведёт кнопка
     const bySlug = s => C.halls.find(h => h.slug === s) || C.halls[0];
-    $('occasions').hidden = !(C.occasions || []).length;
+    $('occasions').hidden = $('occasions').hasAttribute('data-off') || !(C.occasions || []).length;
     $('occList').innerHTML = (C.occasions || []).map(o => { const h = bySlug(o.hall);
       return `<a class="oc" href="#${E(o.to || 'halls')}">${h.photo ? `<img src="${E(h.photo)}" alt="" loading="lazy" decoding="async">` : ''}<span class="ocb"><b>${E(o.title)}</b><span>${E(o.text)}</span></span></a>`; }).join('');
     $('faq').hidden = !(C.faq || []).length;
@@ -341,8 +381,9 @@
       await loadWall();
       st.date = wall.date; drawDays(); drawPlan();
       await Promise.all([loadDay(), loadMine()]);
+      loadAvail().catch(() => {});
     } catch (e) { toast('Нет связи', e.message, 'alt'); }
     if (link) $('book').scrollIntoView();
-    setInterval(() => { if (document.hidden || document.body.classList.contains('form')) return; loadDay().catch(() => {}); loadMine().catch(() => {}); loadWall().catch(() => {}); }, 20000);
+    setInterval(() => { if (document.hidden || document.body.classList.contains('form')) return; loadDay().catch(() => {}); loadMine().catch(() => {}); loadWall().catch(() => {}); loadAvail().catch(() => {}); }, 20000);
   })();
 })();

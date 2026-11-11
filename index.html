@@ -23,7 +23,7 @@
   <header class="topbar">
     <a class="logo" href="#top" aria-label=", наверх"><img src="brand/logo-96.png" alt="" width="44" height="41"></a>
     <span class="status" id="status"></span>
-    <nav aria-label="Разделы"><a href="#halls">Залы</a><a href="#occasions">Поводы</a><a href="#programs">Программы</a><a href="#faq">Вопросы</a><a href="#contacts">Контакты</a></nav>
+    <nav aria-label="Разделы"><a href="#halls">Залы</a><a href="#programs">Программы</a><a href="#faq">Вопросы</a><a href="#contacts">Контакты</a></nav>
     <a class="toptel" id="topTel" data-hit="click:tel"></a>
     <a class="topbook" href="#book">Забронировать</a>
   </header>
@@ -40,7 +40,7 @@
       <div class="wall" id="wall" aria-live="polite"></div>
     </section>
 
-    <section class="block" id="occasions" aria-labelledby="occT">
+    <section class="block" id="occasions" aria-labelledby="occT" hidden data-off>
       <h2 class="h" id="occT">Поводы</h2>
       <div class="occ" id="occList"></div>
     </section>
@@ -104,7 +104,7 @@
   </footer>
   <div class="pad"></div>
 
-  <div class="bar" id="bar"><div class="w"><b id="barT"></b><span id="barS"></span></div>
+  <div class="bar" id="bar"><button type="button" class="barx" id="barX" aria-label="Снять выбор">×</button><div class="w"><b id="barT"></b><span id="barS"></span></div><div class="adj"><button type="button" data-adj="-1" aria-label="На час меньше">−1 ч</button><button type="button" data-adj="1" aria-label="На час больше">+1 ч</button></div>
     <button type="button" class="btn" id="openForm">Оставить заявку</button></div>
 
   <div class="dim" id="dim"></div>

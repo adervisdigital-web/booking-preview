@@ -327,3 +327,30 @@ main{counter-reset:sec}
   .rn img{width:84px;height:62px}
 }
 .stepper{align-self:flex-start}
+
+/* 12.11 удобство брони: дни с числом подходящих залов, шкала времени, панель −1/+1 ч */
+.days{padding:9px 6px 2px 0}
+.day{position:relative}
+.day .av{position:absolute;top:-7px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#fff;color:#0a0812;font-size:11px;font-weight:800;line-height:19px;text-decoration:none}
+.day.on .av{background:#0a0812;color:#fff;box-shadow:0 0 0 2px var(--neon-r)}
+.day.none{opacity:.38}.day.none.on{opacity:1}
+@media (min-width:761px){
+  .slots{gap:2px}
+  .sl{height:40px;border-radius:3px;font-size:12.5px}
+  .sl.rs{border-top-left-radius:11px;border-bottom-left-radius:11px}
+  .sl.re{border-top-right-radius:11px;border-bottom-right-radius:11px}
+}
+.sl.b{background:repeating-linear-gradient(135deg,#17121f 0 5px,#1e1829 5px 10px);border-color:#1e1829;color:#4e485e}
+.sl.p{background:#0d0b13;border-color:#0d0b13;color:#332e40}
+.sl.s{border-radius:0}
+.sl.s.rs{border-top-left-radius:11px;border-bottom-left-radius:11px}
+.sl.s.re{border-top-right-radius:11px;border-bottom-right-radius:11px}
+.sl.now{position:relative}
+.sl.now::before{content:'';position:absolute;left:-3px;top:-5px;bottom:-5px;width:2px;border-radius:2px;background:#36e27a;box-shadow:0 0 8px rgba(54,226,122,.8)}
+.hint em.b::before{background:repeating-linear-gradient(135deg,#17121f 0 3px,#2a2238 3px 6px);border-color:#2a2238}
+.barx{flex:none;width:34px;height:34px;border-radius:50%;font-size:20px;color:var(--smoke);border:1px solid rgba(255,255,255,.16)}
+.barx:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+.adj{flex:none;display:flex;gap:6px}
+.adj button{height:44px;padding:0 13px;border-radius:10px;border:1px solid rgba(255,255,255,.2);font-weight:700;font-size:14px;color:var(--paper)}
+.adj button:hover{background:#2a2238}
+@media (max-width:760px){ .bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center} .bar .btn{grid-column:1/-1} }
