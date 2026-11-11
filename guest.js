@@ -23,7 +23,7 @@
   }
 
   let C, day = { busy: {}, past: 0 }, wall = null, hdStage = () => '';
-  const st = { date: '', sel: null, mine: [], dur: 3, occ: null };
+  const st = { date: '', sel: null, mine: [], dur: 3, occ: null, pick: null };
   const hall = id => C.halls.find(h => h.id === id);
   const hh = i => String((C.from + i) % 24).padStart(2, '0');
   const span = (a, n) => `${hh(a)}:00–${hh(a + n)}:00`;
@@ -154,18 +154,42 @@
       ?`<b>${good.length} ${good.length === 1 ? 'зал подходит' : good.length < 5 ? 'зала подходят' : 'залов подходят'}</b> для ${g} ${g === 1 ? 'гостя' : 'гостей'} ${durTxt} · от ${rub(Math.min(...good.map(o => o.r.price)))}`
       : `<b>На ${dayMon(st.date)} под ${g} ${g === 1 ? 'гостя' : 'гостей'} ${durTxt} мест нет.</b> <span id="nextFree">Ищем ближайшую дату…</span>`;
     if (!good.length && g <= big.cap) findNext(); else scan++;
-    $('slots').innerHTML = rows.map(({ x, r }) => { const mine = st.sel && st.sel.id === x.id;
-      const fitTxt = r.f === 'ok' ? `до ${x.cap} чел.` : r.f === 'tight' ? `тесновато: +${x.extra} ₽/ч за гостя сверх ${x.cap}` : `до ${x.cap} чел., не поместитесь`;
-      return `<article class="row2 f-${r.f}${mine ? ' on' : ''}${r.rank > 5 ? ' faded' : ''}" id="b-${x.id}">
-      <div class="rn">${x.photo ? `<img src="${E(x.photo)}" alt="" loading="lazy" decoding="async">` : ''}<div><b>${E(x.name)}${x.slug === rec ? '<em class="rec">советуем</em>' : ''}</b><span class="fit">${fitTxt}</span>
-        <span class="wtime${r.w && r.full ? '' : ' part'}">${r.text}</span>${r.w ? `<button type="button" class="take" data-take="${x.id}" data-a="${r.w.a}" data-n="${r.w.n}">${mine ? 'Выбрано' : 'Взять'}</button>` : ''}</div></div>
-      <div class="slots" style="--hours:${C.hours}">${Array.from({ length: C.hours }, (_, i) => { const past = i < day.past, b = taken(x.id, i), sel = !b && mine && i >= st.sel.a && i <= st.sel.b;
-        // шкала: края свободных отрезков и выбора скруглены, прошедшие часы отдельно от занятых, черта «сейчас»
-        const free = j => j >= 0 && j < C.hours && !taken(x.id, j), inSel = j => mine && j >= st.sel.a && j <= st.sel.b;
-        let cls = past ? ' p b' : b ? ' b' : sel ? ' s' : '';
-        if (!b) cls += (sel ? (!inSel(i - 1) ? ' rs' : '') + (!inSel(i + 1) ? ' re' : '') : (!free(i - 1) || inSel(i - 1) ? ' rs' : '') + (!free(i + 1) || inSel(i + 1) ? ' re' : ''));
-        if (night(i)) cls += ' n'; if (st.date === C.today && i === day.past && day.past > 0) cls += ' now';
-        return `<button type="button" class="sl${cls}" data-id="${x.id}" data-i="${i}"${b ? ' disabled' : ''} aria-label="${E(x.name)}, ${hh(i)}:00, ${past ? 'прошло' : b ? 'занято' : sel ? 'выбрано' : 'свободно'}">${hh(i)}</button>`; }).join('')}</div></article>`; }).join('');
+    // карточки залов: крупное фото, полоска дня, окно и цена; справа (на телефоне ниже) панель выбранного зала
+    $('slots').innerHTML = rows.map(({ x, r }) => { const on = st.pick === x.id;
+      const fitTxt = r.f === 'tight' ? `тесновато: +${x.extra} ₽/ч за гостя сверх ${x.cap}` : r.f === 'no' ? 'не поместитесь' : '';
+      const mini = Array.from({ length: C.hours }, (_, i) => { const b = taken(x.id, i), s = !b && st.sel && st.sel.id === x.id && i >= st.sel.a && i <= st.sel.b;
+        return `<i class="${b ? 'b' : s ? 's' : night(i) ? 'n' : ''}"></i>`; }).join('');
+      return `<article class="hc f-${r.f}${on ? ' on' : ''}${r.rank > 5 ? ' faded' : ''}" id="b-${x.id}">
+        <button type="button" class="hcb" data-hpick="${x.id}" aria-label="${E(x.name)}, до ${x.cap} человек, ${E(r.text)}">
+        <span class="hcph">${x.photo ? `<img src="${E(x.photo)}" alt="" loading="lazy" decoding="async">` : ''}<span class="hccap">до ${x.cap} чел.</span>${x.slug === rec ? '<em class="rec">советуем</em>' : ''}</span>
+        <span class="hcn">${E(x.name)}</span><span class="mini" style="--hours:${C.hours}" aria-hidden="true">${mini}</span>
+        <span class="hcw${r.w && r.full ? '' : ' part'}">${r.text}</span>${fitTxt ? `<span class="hcfit">${fitTxt}</span>` : ''}</button></article>`; }).join('');
+    drawPicker();
+  }
+  const PARTS = i => { const h = (C.from + i) % 24; return h >= 6 && h < 18 ? 'День' : h >= 18 ? 'Вечер' : 'Ночь'; };
+  function drawPicker() {
+    const x = st.pick && hall(st.pick);
+    if (!x) { $('picker').innerHTML = `<div class="pkempty"><span class="pkic" aria-hidden="true">←</span><b>Выберите зал</b><p>Нажмите на карточку: покажем свободные часы этого зала, цену и лучшее время под вашу компанию.</p></div>`; return; }
+    const mine = st.sel && st.sel.id === x.id, rowsH = [];
+    for (let a = 0; a < C.hours; a += 6) rowsH.push([a, Math.min(C.hours, a + 6)]);
+    const cell = i => { const past = i < day.past, b = taken(x.id, i), sel = !b && mine && i >= st.sel.a && i <= st.sel.b;
+      const free = j => j >= 0 && j < C.hours && !taken(x.id, j), inSel = j => mine && j >= st.sel.a && j <= st.sel.b;
+      let cls = past ? ' p b' : b ? ' b' : sel ? ' s' : '';
+      if (!b) cls += sel ? (!inSel(i - 1) ? ' rs' : '') + (!inSel(i + 1) ? ' re' : '') : (!free(i - 1) || inSel(i - 1) ? ' rs' : '') + (!free(i + 1) || inSel(i + 1) ? ' re' : '');
+      if (night(i)) cls += ' n'; if (st.date === C.today && i === day.past && day.past > 0) cls += ' now';
+      return `<button type="button" class="sl${cls}" data-id="${x.id}" data-i="${i}"${b ? ' disabled' : ''} aria-label="${hh(i)}:00, ${past ? 'прошло' : b ? 'занято' : sel ? 'выбрано' : 'свободно'}">${hh(i)}:00</button>`; };
+    const n = mine ? st.sel.b - st.sel.a + 1 : 0;
+    $('picker').innerHTML = `<div class="pkhead">${x.photo ? `<img src="${E(x.photo)}" alt="">` : ''}<div class="pkt"><span>${E(dayName(st.date))}</span><h3>${E(x.name)}</h3><span>до ${x.cap} человек</span></div></div>
+      <div class="pkbody">${rowsH.map(([a, b]) => `<div class="pkrow"><span class="pkl">${PARTS(a)}</span><div class="pkcells">${Array.from({ length: b - a }, (_, k) => cell(a + k)).join('')}</div></div>`).join('')}
+      <div class="pksum">${mine ? `<div class="pkline">${span(st.sel.a, n)}, ${n} ${hrsWord(n)}</div><div class="pkprice">≈ ${rub(costOf(st.sel))}</div>
+        <div class="pkact"><div class="adj"><button type="button" data-adj="-1" aria-label="На час меньше">−1 ч</button><button type="button" data-adj="1" aria-label="На час больше">+1 ч</button></div><button type="button" class="pkgo" data-open-form>Оставить заявку</button></div>`
+        : `<div class="pkline">Нажмите на час, с которого начнёте: выделим сразу ${st.dur >= 99 ? 'до утра' : `${st.dur} ${hrsWord(st.dur)}`}.</div>`}
+      <button type="button" class="pkmore" data-more="${x.id}">Фото и видео зала</button></div></div>`;
+  }
+  function pickHall(id, scroll) {
+    st.pick = id; const w = bestWin(day, id, st.dur);
+    st.sel = w ? { id, a: w.a, b: w.a + w.n - 1 } : null; drawSlots(); drawBar();
+    if (scroll && matchMedia('(max-width:900px)').matches) goTo('picker');
   }
   // ничего не подходит на выбранный день → ищем ближайшую дату (до 14 дней вперёд)
   let scan = 0;
@@ -235,15 +259,16 @@
     if (!s || s.id !== id) { const n = Math.max(1, runFrom(day, id, i, st.dur)); st.sel = { id, a: i, b: i + n - 1 }; }   // одно нажатие = вся выбранная длительность
     else if (s.a === i && s.b === i) st.sel = null;
     else if (i >= s.a && i <= s.b) st.sel = i === s.a ? { id, a: i + 1, b: s.b } : { id, a: s.a, b: i - 1 };
-    else { const a = Math.min(s.a, i), b = Math.max(s.b, i); let free = true; for (let k = a; k <= b; k++) if (taken(id, k)) free = false; st.sel = free ? { id, a, b } : { id, a: i, b: i }; }
-    drawSlots(); drawBar();
+    else if (i === s.b + 1 || i === s.a - 1) st.sel = { id, a: Math.min(s.a, i), b: Math.max(s.b, i) };   // соседний час: добавить
+    else { const n = Math.max(1, runFrom(day, id, i, st.dur)); st.sel = { id, a: i, b: i + n - 1 }; }       // дальний час: новое начало
+    st.pick = id; drawSlots(); drawBar();
   }
   const goTo = id => { const el = $(id); if (!el) return; el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); };
   async function openHall(id, date, preselect) {
     st.date = date; st.sel = null; drawDays();
     await loadDay();
-    if (preselect) { const w = bestWin(day, id, st.dur); if (w) { st.sel = { id, a: w.a, b: w.a + w.n - 1 }; drawSlots(); drawBar(); } }
-    goTo(`b-${id}`);
+    pickHall(id, false);
+    if (matchMedia('(max-width:900px)').matches) goTo('picker'); else $('book').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
   }
   const form = on => { document.body.classList.toggle('form', on); if (!on) $('err').textContent = ''; };
   function drawSum() {
@@ -288,6 +313,8 @@
     const d = t.closest('[data-day]');
     if (d) { st.date = d.dataset.day; st.sel = null; drawDays(); drawBar(); loadDay().catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const sl = t.closest('.sl'); if (sl && !sl.disabled) { tap(+sl.dataset.id, +sl.dataset.i); return; }
+    const hp = t.closest('[data-hpick]'); if (hp) { pickHall(+hp.dataset.hpick, true); hit('book:take'); return; }
+    if (t.closest('[data-open-form]')) { openForm(); return; }
     const tk = t.closest('[data-take]'); if (tk) { const id = +tk.dataset.take, a = +tk.dataset.a; st.sel = { id, a, b: a + +tk.dataset.n - 1 }; drawSlots(); drawBar(); hit('book:take'); return; }
     const gb = t.closest('[data-g]'); if (gb) { setGuests(guests() + +gb.dataset.g); return; }
     const du = t.closest('[data-dur]'); if (du) { st.dur = +du.dataset.dur; prefs.set({ dur: st.dur }); drawPlan(); drawSlots(); drawDays(); return; }
