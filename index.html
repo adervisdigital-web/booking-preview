@@ -23,7 +23,7 @@
   <header class="topbar">
     <a class="logo" href="#top" aria-label=", наверх"><img src="brand/logo-96.png" alt="" width="44" height="41"></a>
     <span class="status" id="status"></span>
-    <nav aria-label="Разделы"><a href="#halls">Залы</a><a href="#programs">Программы</a><a href="#faq">Вопросы</a><a href="#contacts">Контакты</a></nav>
+    <nav aria-label="Разделы"><a href="#book">Бронь</a><a href="#halls">Залы</a><a href="#programs">Программы</a><a href="#faq">Вопросы</a><a href="#contacts">Контакты</a></nav>
     <a class="toptel" id="topTel" data-hit="click:tel"></a>
     <a class="topbook" href="#book">Забронировать</a>
   </header>
@@ -33,25 +33,15 @@
       <div class="herotext">
         <div class="herobg" id="heroBg" aria-hidden="true"></div>
         <h1 id="name"></h1>
-        <div class="herosub"><p id="lead"></p><a class="cta" href="#book">Выбрать зал и время</a></div>
+        <div class="herosub"><p id="lead"></p><a class="cta" href="#book">Забронировать зал</a></div>
         <dl class="facts" id="facts"></dl>
       </div>
       <div class="wallhead"><h2 id="wallTitle">Свободные залы</h2><p id="wallHint">Горят залы, которые ещё можно забронировать</p></div>
       <div class="wall" id="wall" aria-live="polite"></div>
     </section>
 
-    <section class="block" id="occasions" aria-labelledby="occT" hidden data-off>
-      <h2 class="h" id="occT">Поводы</h2>
-      <div class="occ" id="occList"></div>
-    </section>
-
-    <section class="block" id="halls" aria-labelledby="hallsT">
-      <h2 class="h" id="hallsT">Залы</h2>
-      <div class="hlist" id="hallList"></div>
-    </section>
-
     <section class="block book" id="book" aria-labelledby="bookT">
-      <h2 class="h" id="bookT">Выбрать время</h2>
+      <h2 class="h" id="bookT">Забронировать зал</h2>
       <div class="plan" id="plan" role="group" aria-label="Подбор зала">
         <div class="pg"><span class="pl">Сколько вас</span>
           <div class="stepper"><button type="button" data-g="-1" aria-label="Меньше гостей">−</button><output id="pGu" aria-live="polite">4</output><button type="button" data-g="1" aria-label="Больше гостей">+</button></div></div>
@@ -65,6 +55,17 @@
       <div class="grid2" id="slots"></div>
       <p class="booknote">Нажмите на свободный час: зал выделится сразу на выбранное время, соседние часы добавляют или убирают по одному. Заявку подтвердит администратор, статус появится здесь.</p>
     </section>
+
+    <section class="block" id="occasions" aria-labelledby="occT" hidden data-off>
+      <h2 class="h" id="occT">Поводы</h2>
+      <div class="occ" id="occList"></div>
+    </section>
+
+    <section class="block" id="halls" aria-labelledby="hallsT">
+      <h2 class="h" id="hallsT">Залы</h2>
+      <div class="hlist" id="hallList"></div>
+    </section>
+
 
     <div class="duo">
       <section class="block" id="programs" aria-labelledby="progT">
