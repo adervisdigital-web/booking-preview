@@ -219,7 +219,8 @@
   $('fGu').addEventListener('input', () => { drawSum(); drawBar(); });
 
   function fill() {
-    $('name').textContent = C.name; document.querySelector('.logo').lastChild.textContent = C.name;   // знак-картинка остаётся первым ребёнком
+    $('name').textContent = C.name; { const lg = document.querySelector('.logo'); let tn = [...lg.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()) || [...lg.childNodes].find(n => n.nodeType === 3);
+      if (!tn) tn = lg.appendChild(document.createTextNode('')); tn.textContent = C.name; }   // знак-картинка остаётся, меняем только текст
     // логотип: на сервере клиента лежит в brand/, в предпросмотре приходит адресом из данных; нет файла — картинку убираем
     const brandImgs = [[document.querySelector('.logo img'), C.logo], [document.querySelector('.flogoimg'), C.logoBig]];
     for (const [img, url] of brandImgs) { if (!img) continue; img.addEventListener('error', () => img.remove(), { once: true }); if (url) img.src = url; else if (img.complete && !img.naturalWidth) img.remove(); } $('lead').textContent = C.lead || C.sub || '';
