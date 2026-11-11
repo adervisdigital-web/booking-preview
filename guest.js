@@ -125,10 +125,13 @@
       .sort((p, q) => p.r.rank - q.r.rank || (p.r.price || 1e9) - (q.r.price || 1e9));
     const good = rows.filter(o => o.r.rank === 0), g = guests();
     const durTxt = st.dur >= 99 ? 'до утра' : `на ${st.dur} ${hrsWord(st.dur)}`;
-    $('fitSum').innerHTML = good.length
-      ? `<b>${good.length} ${good.length === 1 ? 'зал подходит' : good.length < 5 ? 'зала подходят' : 'залов подходят'}</b> для ${g} ${g === 1 ? 'гостя' : 'гостей'} ${durTxt} · от ${rub(Math.min(...good.map(o => o.r.price)))}`
+    const big = C.halls.reduce((m, x) => x.cap > m.cap ? x : m, C.halls[0]);
+    $('fitSum').innerHTML = g > big.cap
+      ? `<b>Самый вместительный зал: ${E(big.name)}, до ${big.cap} человек.</b> Для компании больше ${big.cap} человек <a href="#contacts">позвоните нам</a>, подскажем варианты.`
+      : good.length
+      ?`<b>${good.length} ${good.length === 1 ? 'зал подходит' : good.length < 5 ? 'зала подходят' : 'залов подходят'}</b> для ${g} ${g === 1 ? 'гостя' : 'гостей'} ${durTxt} · от ${rub(Math.min(...good.map(o => o.r.price)))}`
       : `<b>На ${dayMon(st.date)} под ${g} ${g === 1 ? 'гостя' : 'гостей'} ${durTxt} мест нет.</b> <span id="nextFree">Ищем ближайшую дату…</span>`;
-    if (!good.length) findNext();
+    if (!good.length && g <= big.cap) findNext(); else scan++;
     $('slots').innerHTML = rows.map(({ x, r }) => { const mine = st.sel && st.sel.id === x.id;
       const fitTxt = r.f === 'ok' ? `до ${x.cap} чел.` : r.f === 'tight' ? `тесновато: +${x.extra} ₽/ч за гостя сверх ${x.cap}` : `до ${x.cap} чел., не поместитесь`;
       return `<article class="row2 f-${r.f}${mine ? ' on' : ''}${r.rank > 5 ? ' faded' : ''}" id="b-${x.id}">
