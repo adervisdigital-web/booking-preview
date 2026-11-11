@@ -230,6 +230,11 @@
     $('programs').hidden = !C.programs?.length;
     $('programsList').innerHTML = (C.programs || []).map(p => `<div class="pr"><div><b>${E(p.name)}</b>${p.note ? `<i>${E(p.note)}</i>` : ''}</div><span>${E(p.price)}</span></div>`).join('');
     drawHallList();
+    // первый экран: фото самых ярких залов фоном, сменяются с медленным наездом (CSS)
+    const pick = ['lounge', 'vip', 'impuls', 'games'].map(s => C.halls.find(h => h.slug === s && h.photo)).filter(Boolean);
+    const bg = (pick.length >= 2 ? pick : C.halls.filter(h => h.photo)).slice(0, 4);
+    $('heroBg').style.setProperty('--n', bg.length);
+    $('heroBg').innerHTML = bg.map((h, i) => `<img src="${E(h.photo)}" alt="" decoding="async" style="--i:${i}">`).join('');
     // факты на первом экране
     $('facts').innerHTML = (C.facts || []).map(([a, b]) => `<div><dt>${E(a)}</dt><dd>${E(b)}</dd></div>`).join('');
     // поводы: фото зала и куда ведёт кнопка
