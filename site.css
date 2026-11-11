@@ -282,3 +282,48 @@ main{counter-reset:sec}
 .hl .hlb{padding:16px clamp(16px,1.6vw,22px) clamp(18px,1.8vw,22px)}
 .foot{margin-top:0;background:#07060c}
 @media (max-width:760px){ .row2{padding:14px 0 16px;border-top:1px solid var(--rule)} .row2:first-child{border-top:0} .row2 .rn b{font-size:17px} }
+
+/* 12.11 подбор вечера: гости, длительность, повод; залы с готовым окном и ценой */
+.plan{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:18px clamp(20px,3vw,44px);align-items:start;padding:clamp(16px,2vw,22px);margin:-4px 0 14px;background:var(--card);border:1px solid var(--card-line);border-radius:14px}
+.pg{display:flex;flex-direction:column;gap:9px;min-width:0}
+.pl{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--smoke)}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--card-line);border-radius:999px;background:#120e1b}
+.stepper button{width:44px;height:44px;border-radius:999px;font-size:22px;font-weight:600;color:var(--paper)}
+.stepper button:hover{background:#2a2238}
+.stepper output{min-width:46px;text-align:center;font-family:'Dela Gothic';font-size:24px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{height:40px;padding:0 15px;border-radius:999px;border:1px solid var(--card-line);background:#120e1b;color:var(--paper);font-size:14.5px;font-weight:600;transition:background .15s,border-color .15s}
+.chip:hover{border-color:rgba(255,255,255,.3)}
+.chip.on{background:var(--neon-r);border-color:var(--neon-r);color:#fff}
+.planhint{margin:-2px 0 14px;padding:10px 14px;border-left:3px solid var(--neon-b);background:rgba(58,109,255,.08);border-radius:0 8px 8px 0;font-size:14.5px;color:#d9d5e6}
+.fitsum{margin:6px 0 4px;font-size:15px;color:var(--smoke)}.fitsum b{color:var(--paper)}
+.nextday{margin-left:4px;color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.nextday:hover{color:var(--neon-r)}
+.row2{grid-template-columns:270px minmax(0,1fr);gap:16px;padding:12px 10px;border-radius:10px;transition:background .2s,opacity .2s}
+.row2.on{background:rgba(255,43,61,.07);box-shadow:inset 0 0 0 1px rgba(255,43,61,.35)}
+.row2.faded{opacity:.42}.row2.faded:hover{opacity:.75}
+.rn{display:flex;gap:12px;align-items:flex-start;min-width:0}
+.rn img{flex:none;width:72px;height:54px;border-radius:6px;object-fit:cover}
+.rn>div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.rn b{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.rn .rec{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--neon-b);color:#fff;letter-spacing:.02em}
+.rn .fit{font-size:12.5px;color:var(--smoke)}
+.row2.f-tight .fit{color:#ffc56b}.row2.f-no .fit{color:#ff8a93}
+.rn .wtime{font-size:13.5px;font-weight:600;color:#e9e5f3}.rn .wtime.part{color:var(--smoke);font-weight:500}
+.take{align-self:flex-start;margin-top:6px;height:32px;padding:0 14px;border-radius:999px;background:#fff;color:#0a0812;font-size:13px;font-weight:700}
+.take:hover{background:var(--neon-r);color:#fff}
+.row2.on .take{background:var(--neon-r);color:#fff}
+.sl.n:not(.b):not(.s){background:#1b2140;border-color:#2c3a6e}
+.sl.n:hover:not(.b):not(.s){background:#25305c}
+.hint em.n::before{background:#1b2140;border-color:#2c3a6e}
+.booknote{margin-top:16px;font-size:13.5px;color:var(--smoke);max-width:80ch}
+@media (max-width:1180px){ .plan{grid-template-columns:auto minmax(0,1fr)} .pocc{grid-column:1/-1} .row2{grid-template-columns:230px minmax(0,1fr)} }
+@media (max-width:760px){
+  .plan{grid-template-columns:minmax(0,1fr)} .pocc{grid-column:auto}
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:calc(-1 * clamp(16px,2vw,22px));padding-right:clamp(16px,2vw,22px)}
+  .chips::-webkit-scrollbar{display:none}.chip{flex:none}
+  .row2{grid-template-columns:1fr;padding:14px 4px 16px;border-radius:0}
+  .row2.on{border-radius:10px;padding-left:8px;padding-right:8px}
+  .rn img{width:84px;height:62px}
+}
+.stepper{align-self:flex-start}

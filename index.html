@@ -52,14 +52,18 @@
 
     <section class="block book" id="book" aria-labelledby="bookT">
       <h2 class="h" id="bookT">Выбрать время</h2>
-      <ol class="steps">
-        <li><b>Выберите день и свободный час</b><span>Нажмите на соседние часы, чтобы взять зал дольше</span></li>
-        <li><b>Оставьте имя и телефон</b><span>Стоимость посчитается сразу, с учётом дня и числа гостей</span></li>
-        <li><b>Администратор подтвердит</b><span>Статус брони появится на этой странице</span></li>
-      </ol>
-      <div class="daysbar"><nav class="days" id="days" aria-label="Выбор дня"></nav><div class="hint"><em>свободно</em><em class="b">занято</em><em class="s">ваш выбор</em></div></div>
+      <div class="plan" id="plan" role="group" aria-label="Подбор зала">
+        <div class="pg"><span class="pl">Сколько вас</span>
+          <div class="stepper"><button type="button" data-g="-1" aria-label="Меньше гостей">−</button><output id="pGu" aria-live="polite">4</output><button type="button" data-g="1" aria-label="Больше гостей">+</button></div></div>
+        <div class="pg"><span class="pl">На сколько часов</span><div class="chips" id="pDur"></div></div>
+        <div class="pg pocc"><span class="pl">Повод</span><div class="chips" id="pOcc"></div></div>
+      </div>
+      <p class="planhint" id="planHint" hidden></p>
+      <div class="daysbar"><nav class="days" id="days" aria-label="Выбор дня"></nav><div class="hint"><em>свободно</em><em class="n">ночь, свой тариф</em><em class="b">занято</em><em class="s">ваш выбор</em></div></div>
+      <div class="fitsum" id="fitSum" aria-live="polite"></div>
       <div class="mine" id="mine"></div>
       <div class="grid2" id="slots"></div>
+      <p class="booknote">Нажмите на свободный час: зал выделится сразу на выбранное время, соседние часы добавляют или убирают по одному. Заявку подтвердит администратор, статус появится здесь.</p>
     </section>
 
     <div class="duo">

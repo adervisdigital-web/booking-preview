@@ -23,7 +23,7 @@
   }
 
   let C, day = { busy: {}, past: 0 }, wall = null, hdStage = () => '';
-  const st = { date: '', sel: null, mine: [] };
+  const st = { date: '', sel: null, mine: [], dur: 3, occ: null };
   const hall = id => C.halls.find(h => h.id === id);
   const hh = i => String((C.from + i) % 24).padStart(2, '0');
   const span = (a, n) => `${hh(a)}:00–${hh(a + n)}:00`;
@@ -99,11 +99,65 @@
     $('days').innerHTML = Array.from({ length: 14 }, (_, k) => { const s = addDays(C.today, k), d = asDate(s);
       return `<button type="button" class="day${s === st.date ? ' on' : ''}" data-day="${s}"><b>${d.getUTCDate()}</b><i>${k === 0 ? 'сегодня' : WD[d.getUTCDay()]}</i></button>`; }).join('');
   }
-  function drawSlots() {
-    $('slots').innerHTML = C.halls.map(x => `<article class="row2" id="b-${x.id}"><div class="rn"><b>${E(x.name)}</b><span>до ${x.cap} чел.</span></div>
-      <div class="slots" style="--hours:${C.hours}">${Array.from({ length: C.hours }, (_, i) => { const b = taken(x.id, i), sel = !b && st.sel && st.sel.id === x.id && i >= st.sel.a && i <= st.sel.b;
-        return `<button type="button" class="sl${b ? ' b' : sel ? ' s' : ''}" data-id="${x.id}" data-i="${i}"${b ? ' disabled' : ''} aria-label="${E(x.name)}, ${hh(i)}:00, ${b ? 'занято' : 'свободно'}">${hh(i)}</button>`; }).join('')}</div></article>`).join('');
+  // ---- подбор вечера: гости, длительность, повод → залы сортируются, у каждого готовое окно и цена
+  const DUR = [[2, '2 ч'], [3, '3 ч'], [4, '4 ч'], [6, '6 ч'], [99, 'до утра']];
+  const night = i => C.from + i >= 24;
+  const runFrom = (d, id, i, want) => { let n = 0; while (n < want && i + n < C.hours && !takenIn(d, id, i + n)) n++; return n; };
+  // лучшее окно на день: первое начало, где помещается нужная длительность; иначе самое длинное свободное
+  function bestWin(d, id, want) {
+    let best = null;
+    for (let i = 0; i < C.hours; i++) { if (takenIn(d, id, i)) continue; const n = runFrom(d, id, i, want);
+      if (n >= Math.min(want, C.hours - i) && (want < 99 ? n >= want : true)) return { a: i, n };
+      if (!best || n > best.n) best = { a: i, n }; i += n - 1; }
+    return best;
   }
+  const fitOf = x => { const g = guests(); return g <= x.cap ? 'ok' : x.extra && g <= Math.ceil(x.cap * 1.5) ? 'tight' : 'no'; };
+  const occHall = () => { const o = (C.occasions || []).find(q => q.title === st.occ); return o ? o.hall : ''; };
+  function rowInfo(x) {
+    const w = bestWin(day, x.id, st.dur), f = fitOf(x), g = guests();
+    if (!w) return { w, f, rank: 9, text: 'на этот день занят', price: 0 };
+    const full = st.dur >= 99 || w.n >= st.dur, price = Pricing.total(x, st.date, w.a, w.n, g, C);
+    const text = `${full ? '' : 'только '}с ${hh(w.a)}:00 · ${w.n} ${hrsWord(w.n)} ≈ ${rub(price)}`;
+    return { w, f, full, price, text, rank: (f === 'ok' ? 0 : f === 'tight' ? 2 : 6) + (full ? 0 : 1) };
+  }
+  function drawSlots() {
+    const rec = occHall(), rows = C.halls.map(x => ({ x, r: rowInfo(x) }))
+      .sort((p, q) => p.r.rank - q.r.rank || (p.r.price || 1e9) - (q.r.price || 1e9));
+    const good = rows.filter(o => o.r.rank === 0), g = guests();
+    const durTxt = st.dur >= 99 ? 'до утра' : `на ${st.dur} ${hrsWord(st.dur)}`;
+    $('fitSum').innerHTML = good.length
+      ? `<b>${good.length} ${good.length === 1 ? 'зал подходит' : good.length < 5 ? 'зала подходят' : 'залов подходят'}</b> для ${g} ${g === 1 ? 'гостя' : 'гостей'} ${durTxt} · от ${rub(Math.min(...good.map(o => o.r.price)))}`
+      : `<b>На ${dayMon(st.date)} под ${g} ${g === 1 ? 'гостя' : 'гостей'} ${durTxt} мест нет.</b> <span id="nextFree">Ищем ближайшую дату…</span>`;
+    if (!good.length) findNext();
+    $('slots').innerHTML = rows.map(({ x, r }) => { const mine = st.sel && st.sel.id === x.id;
+      const fitTxt = r.f === 'ok' ? `до ${x.cap} чел.` : r.f === 'tight' ? `тесновато: +${x.extra} ₽/ч за гостя сверх ${x.cap}` : `до ${x.cap} чел., не поместитесь`;
+      return `<article class="row2 f-${r.f}${mine ? ' on' : ''}${r.rank > 5 ? ' faded' : ''}" id="b-${x.id}">
+      <div class="rn">${x.photo ? `<img src="${E(x.photo)}" alt="" loading="lazy" decoding="async">` : ''}<div><b>${E(x.name)}${x.slug === rec ? '<em class="rec">советуем</em>' : ''}</b><span class="fit">${fitTxt}</span>
+        <span class="wtime${r.w && r.full ? '' : ' part'}">${r.text}</span>${r.w ? `<button type="button" class="take" data-take="${x.id}" data-a="${r.w.a}" data-n="${r.w.n}">${mine ? 'Выбрано' : 'Взять'}</button>` : ''}</div></div>
+      <div class="slots" style="--hours:${C.hours}">${Array.from({ length: C.hours }, (_, i) => { const b = taken(x.id, i), sel = !b && mine && i >= st.sel.a && i <= st.sel.b;
+        return `<button type="button" class="sl${b ? ' b' : sel ? ' s' : ''}${night(i) ? ' n' : ''}" data-id="${x.id}" data-i="${i}"${b ? ' disabled' : ''} aria-label="${E(x.name)}, ${hh(i)}:00, ${b ? 'занято' : 'свободно'}">${hh(i)}</button>`; }).join('')}</div></article>`; }).join('');
+  }
+  // ничего не подходит на выбранный день → ищем ближайшую дату (до 14 дней вперёд)
+  let scan = 0;
+  async function findNext() {
+    const my = ++scan, g = guests();
+    for (let k = 1; k <= 14; k++) {
+      const date = addDays(st.date, k); if (date > addDays(C.today, 13)) break;
+      const d = await api(`/day?date=${date}`).catch(() => null); if (my !== scan) return; if (!d) continue;
+      const n = C.halls.filter(x => g <= x.cap && (() => { const w = bestWin(d, x.id, st.dur); return w && (st.dur >= 99 || w.n >= st.dur); })()).length;
+      if (n) { const el = $('nextFree'); if (el) el.innerHTML = `<button type="button" class="nextday" data-day="${date}">Ближайшее: ${E(dayName(date))}, ${n} ${n === 1 ? 'зал' : n < 5 ? 'зала' : 'залов'} →</button>`; return; }
+    }
+    const el = $('nextFree'); if (el && my === scan) el.innerHTML = 'Ближайшие две недели заняты. <a href="#contacts">Позвоните нам</a>, подберём время.';
+  }
+  function drawPlan() {
+    $('pGu').textContent = guests();
+    $('pDur').innerHTML = DUR.map(([v, l]) => `<button type="button" class="chip${st.dur === v ? ' on' : ''}" data-dur="${v}" aria-pressed="${st.dur === v}">${l}</button>`).join('');
+    const occ = C.occasions || [];
+    $('plan').querySelector('.pocc').hidden = !occ.length;
+    $('pOcc').innerHTML = occ.map(o => `<button type="button" class="chip${st.occ === o.title ? ' on' : ''}" data-occ="${E(o.title)}" aria-pressed="${st.occ === o.title}">${E(o.title)}</button>`).join('');
+    const o = occ.find(q => q.title === st.occ); $('planHint').hidden = !o; $('planHint').textContent = o ? o.text : '';
+  }
+  function setGuests(n) { $('fGu').value = Math.max(1, Math.min(60, n)); drawPlan(); drawSlots(); drawBar(); }
   function drawBar() {
     const s = st.sel; $('bar').classList.toggle('show', !!s);
     if (!s) return;
@@ -139,7 +193,7 @@
   }
   function tap(id, i) {
     const s = st.sel;
-    if (!s || s.id !== id) st.sel = { id, a: i, b: i };
+    if (!s || s.id !== id) { const n = Math.max(1, runFrom(day, id, i, st.dur)); st.sel = { id, a: i, b: i + n - 1 }; }   // одно нажатие = вся выбранная длительность
     else if (s.a === i && s.b === i) st.sel = null;
     else if (i >= s.a && i <= s.b) st.sel = i === s.a ? { id, a: i + 1, b: s.b } : { id, a: s.a, b: i - 1 };
     else { const a = Math.min(s.a, i), b = Math.max(s.b, i); let free = true; for (let k = a; k <= b; k++) if (taken(id, k)) free = false; st.sel = free ? { id, a, b } : { id, a: i, b: i }; }
@@ -149,7 +203,7 @@
   async function openHall(id, date, preselect) {
     st.date = date; st.sel = null; drawDays();
     await loadDay();
-    if (preselect) { const w = freeWindow(day, id); if (w) { st.sel = { id, a: w.a, b: w.a }; drawSlots(); drawBar(); } }
+    if (preselect) { const w = bestWin(day, id, st.dur); if (w) { st.sel = { id, a: w.a, b: w.a + w.n - 1 }; drawSlots(); drawBar(); } }
     goTo(`b-${id}`);
   }
   const form = on => { document.body.classList.toggle('form', on); if (!on) $('err').textContent = ''; };
@@ -195,6 +249,13 @@
     const d = t.closest('[data-day]');
     if (d) { st.date = d.dataset.day; st.sel = null; drawDays(); drawBar(); loadDay().catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const sl = t.closest('.sl'); if (sl && !sl.disabled) { tap(+sl.dataset.id, +sl.dataset.i); return; }
+    const tk = t.closest('[data-take]'); if (tk) { const id = +tk.dataset.take, a = +tk.dataset.a; st.sel = { id, a, b: a + +tk.dataset.n - 1 }; drawSlots(); drawBar(); hit('book:take'); return; }
+    const gb = t.closest('[data-g]'); if (gb) { setGuests(guests() + +gb.dataset.g); return; }
+    const du = t.closest('[data-dur]'); if (du) { st.dur = +du.dataset.dur; drawPlan(); drawSlots(); return; }
+    const oc = t.closest('[data-occ]'); if (oc) { st.occ = st.occ === oc.dataset.occ ? null : oc.dataset.occ;
+      const o = (C.occasions || []).find(q => q.title === st.occ), h = o && C.halls.find(x => x.slug === o.hall);
+      if (h && guests() > h.cap) setGuests(h.cap);
+      if (st.occ && !$('fCom').value) $('fCom').value = st.occ; drawPlan(); drawSlots(); return; }
     const w = t.closest('[data-wall]'); if (w) { openHall(+w.dataset.wall, wall.date, w.classList.contains('on')).catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const p = t.closest('[data-pick]'); if (p) { if ($('hallDlg').open) $('hallDlg').close(); openHall(+p.dataset.pick, st.date, false).catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const mo = t.closest('[data-more]'); if (mo) { openMore(+mo.dataset.more); return; }
@@ -216,7 +277,7 @@
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') { form(false); cbForm(false); } });
   $('sheet').addEventListener('submit', send);
   $('cbSheet').addEventListener('submit', sendCb);
-  $('fGu').addEventListener('input', () => { drawSum(); drawBar(); });
+  $('fGu').addEventListener('input', () => { drawSum(); drawBar(); $('pGu').textContent = guests(); drawSlots(); });
 
   function fill() {
     $('name').textContent = C.name; { const lg = document.querySelector('.logo'); let tn = [...lg.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()) || [...lg.childNodes].find(n => n.nodeType === 3);
@@ -275,7 +336,7 @@
     fill(); hit('view');
     try {
       await loadWall();
-      st.date = wall.date; drawDays();
+      st.date = wall.date; drawDays(); drawPlan();
       await Promise.all([loadDay(), loadMine()]);
     } catch (e) { toast('Нет связи', e.message, 'alt'); }
     if (link) $('book').scrollIntoView();
