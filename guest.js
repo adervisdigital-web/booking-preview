@@ -22,7 +22,7 @@
     return j;
   }
 
-  let C, day = { busy: {}, past: 0 }, wall = null;
+  let C, day = { busy: {}, past: 0 }, wall = null, hdStage = () => '';
   const st = { date: '', sel: null, mine: [] };
   const hall = id => C.halls.find(h => h.id === id);
   const hh = i => String((C.from + i) % 24).padStart(2, '0');
@@ -80,8 +80,13 @@
   // Карточка зала, как товар во ВКонтакте: фото, видео, описание, что есть в зале, цены
   function openMore(id) {
     const x = hall(id), media = [x.photo, ...(x.gallery || [])].filter(Boolean);
-    $('hdBody').innerHTML = `<div class="hdmedia">${x.video ? `<video src="${E(x.video)}" controls playsinline preload="metadata"${x.photo ? ` poster="${E(x.photo)}"` : ''}></video>` : media.length ? `<img id="hdMain" src="${E(media[0])}" alt="Зал ${E(x.name)}">` : ''}
-        ${media.length > 1 ? `<div class="thumbs">${media.map((m, i) => `<button type="button" data-thumb="${E(m)}"${i ? '' : ' class="on"'}><img src="${E(m)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}</div>
+    // окно зала: сначала видео-обзор 360° (без звука, по кругу), затем фото; миниатюры переключают главное окно
+    const items = [...(x.video ? ['@video'] : []), ...media];
+    hdStage = v => v === '@video'
+      ? `<video src="${E(x.video)}" controls autoplay muted loop playsinline preload="metadata"${x.photo ? ` poster="${E(x.photo)}"` : ''} aria-label="Видео-обзор зала ${E(x.name)}"></video>`
+      : `<img src="${E(v)}" alt="Зал ${E(x.name)}">`;
+    $('hdBody').innerHTML = `<div class="hdmedia"><div class="hdstage" id="hdStage">${items.length ? hdStage(items[0]) : ''}</div>
+        ${items.length > 1 ? `<div class="thumbs">${items.map((m, i) => `<button type="button" data-thumb="${E(m)}"${i ? '' : ' class="on"'} aria-label="${m === '@video' ? 'Видео 360°' : 'Фото ' + (i + (x.video ? 0 : 1))}"><img src="${E(m === '@video' ? (x.photo || media[0] || '') : m)}" alt="" loading="lazy">${m === '@video' ? '<span class="tplay">▶ 360°</span>' : ''}</button>`).join('')}</div>` : ''}</div>
       <div class="hdtext"><div class="hltop"><h3 id="hdT">${E(x.name)}</h3><p class="cap">до ${x.cap} человек</p></div>
         ${x.desc ? `<p class="lead2">${E(x.desc)}</p>` : ''}<p class="what">${E(x.what)}</p>${x.games ? `<p class="what">${E(x.games)}</p>` : ''}
         <dl class="rates">${rateLines(x)}</dl>${x.extra ? `<p class="extra">Сверх ${x.cap} человек: +${x.extra} ₽ в час за гостя</p>` : ''}
@@ -193,7 +198,7 @@
     const w = t.closest('[data-wall]'); if (w) { openHall(+w.dataset.wall, wall.date, w.classList.contains('on')).catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const p = t.closest('[data-pick]'); if (p) { if ($('hallDlg').open) $('hallDlg').close(); openHall(+p.dataset.pick, st.date, false).catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const mo = t.closest('[data-more]'); if (mo) { openMore(+mo.dataset.more); return; }
-    const th = t.closest('[data-thumb]'); if (th) { $('hdMain').src = th.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach(b => b.classList.toggle('on', b === th)); return; }
+    const th = t.closest('[data-thumb]'); if (th) { $('hdStage').innerHTML = hdStage(th.dataset.thumb); document.querySelectorAll('[data-thumb]').forEach(b => b.classList.toggle('on', b === th)); return; }
     if (t.closest('[data-close-hall]') || t === $('hallDlg')) { $('hallDlg').close(); return; }
     if (t.closest('#openCb')) { cbForm(true); return; }
     if (t.closest('[data-close-cb]')) { cbForm(false); return; }
@@ -214,7 +219,10 @@
   $('fGu').addEventListener('input', () => { drawSum(); drawBar(); });
 
   function fill() {
-    $('name').textContent = C.name; document.querySelector('.logo').textContent = C.name; $('lead').textContent = C.lead || C.sub || '';
+    $('name').textContent = C.name; document.querySelector('.logo').lastChild.textContent = C.name;   // знак-картинка остаётся первым ребёнком
+    // логотип: на сервере клиента лежит в brand/, в предпросмотре приходит адресом из данных; нет файла — картинку убираем
+    const brandImgs = [[document.querySelector('.logo img'), C.logo], [document.querySelector('.flogoimg'), C.logoBig]];
+    for (const [img, url] of brandImgs) { if (!img) continue; img.addEventListener('error', () => img.remove(), { once: true }); if (url) img.src = url; else if (img.complete && !img.naturalWidth) img.remove(); } $('lead').textContent = C.lead || C.sub || '';
     const tel = (el, show) => { if (C.phone) { el.textContent = show; el.href = `tel:${C.phoneHref}`; } else el.hidden = true; };
     tel($('topTel'), C.phone); tel($('tel'), C.phone);
     $('addr').textContent = C.address || ''; $('hoursText').textContent = C.hoursText || '';

@@ -253,3 +253,14 @@ h1{font-family:'Dela Gothic';font-weight:400;font-size:clamp(46px,8.8vw,150px);l
   #hallsT::after{content:'листайте вбок →';display:block;margin-top:8px;font-family:system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--smoke)}
 }
 @media (min-width:1100px){ .duo .h{font-size:clamp(30px,3.7vw,56px);white-space:nowrap} }
+
+/* 12.11 логотип клиента, окно зала с видео 360° и фото */
+.logo{display:flex;align-items:center;gap:10px}
+.logo img{height:40px;width:auto;flex:none}
+.flogoimg{width:132px;height:auto;margin-bottom:8px}
+.hdstage{position:relative;flex:1 1 auto;display:flex;min-height:0}
+.hdstage>img,.hdstage>video{flex:1 1 auto}
+.thumbs button{position:relative}
+.thumbs .tplay{position:absolute;left:4px;bottom:4px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.72);color:#fff;font-size:11px;font-weight:700;line-height:1.4}
+@media (max-width:520px){ .logo{font-size:0;gap:0} .logo img{height:38px} }
+@media (max-width:1100px){ .topbar .topbook{margin-left:auto} .topbar .toptel + .topbook{margin-left:0} }
