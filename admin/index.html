@@ -16,7 +16,7 @@
   <div class="toast" id="toast" role="status"><div class="ic" id="tIc">✓</div><div><b id="tT"></b><span id="tS"></span></div></div>
 
   <form id="login" class="login" hidden>
-    <h1 class="brand">БРОНЬ ЗАЛОВ</h1><p class="role">кабинет администратора</p>
+    <img class="loginlogo" src="../brand/logo-192.png" alt="" width="96" height="89"><h1 class="brand">БРОНЬ ЗАЛОВ</h1><p class="role">кабинет администратора</p>
     <label class="fld"><i>Логин</i><input id="lLogin" autocomplete="username" required></label>
     <label class="fld"><i>Пароль</i><input id="lPass" type="password" autocomplete="current-password" required></label>
     <p class="err" id="lErr" role="alert"></p>
@@ -25,8 +25,9 @@
 
   <div class="admin" id="app" hidden>
     <div class="am">
-      <div class="ah"><div class="brand sm" id="aName"></div><span class="role" id="who"></span>
+      <div class="ah"><img class="alogo" src="../brand/logo-96.png" alt="" width="40" height="37"><div class="brand sm" id="aName"></div><span class="role" id="who"></span>
         <div class="dsel"><button type="button" id="prev" aria-label="Предыдущий день">‹</button><input type="date" id="pick" aria-label="Дата"><button type="button" id="next" aria-label="Следующий день">›</button><button type="button" class="today" id="today">Сегодня</button></div></div>
+      <nav class="adays" id="adays" aria-label="Дни: заявки и брони"></nav>
       <div class="kpi"><div class="r"><i>Новые заявки</i><b id="kReq">0</b></div><div><i>Броней на день</i><b id="kB">0</b></div><div><i>Загрузка вечером</i><b id="kL">0%</b></div></div>
       <div class="gridwrap"><div class="grid" id="grid"></div></div>
       <div class="legend"><em class="l1">подтверждено</em><em class="l2">заявка гостя</em><em class="l4">предложено время</em><em class="l3">бронь по телефону</em><span>Нажмите на пустую клетку, чтобы записать бронь по телефону</span></div>

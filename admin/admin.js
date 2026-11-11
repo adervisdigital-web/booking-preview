@@ -24,6 +24,20 @@
   const hall = id => C.halls.find(h => h.id === id);
   const isFree = (h, i) => !S.day.bookings.some(b => b.hall_id === h && i >= b.start && i < b.start + b.hours);
   const cls = b => b.status === 'confirmed' ? (b.source === 'phone' ? 'phone' : 'confirmed') : b.status;
+  const dayLabel = s => s === C.today ? 'Сегодня' : s === addDays(C.today, 1) ? 'Завтра' : dayShort(s);
+  const fmtTel = v => { let n = String(v || '').replace(/\D/g, ''); if (n.length === 11 && /^[78]/.test(n)) n = n.slice(1); return n.length === 10 ? `+7 (${n.slice(0, 3)}) ${n.slice(3, 6)}-${n.slice(6, 8)}-${n.slice(8)}` : v; };
+  // лента 14 дней: красная цифра — новые заявки, серая — подтверждённые брони
+  const counts = {};
+  async function loadCounts() {
+    const dates = Array.from({ length: 14 }, (_, k) => addDays(C.today, k));
+    await Promise.all(dates.map(s => api(`/day?date=${s}`).then(x => { counts[s] = x.bookings.filter(b => b.status === 'confirmed').length; }).catch(() => {})));
+    drawDays();
+  }
+  function drawDays() {
+    if (!S.day) return; const req = {}; S.day.pending.filter(q => q.status === 'request').forEach(q => req[q.date] = (req[q.date] || 0) + 1);
+    $('adays').innerHTML = Array.from({ length: 14 }, (_, k) => { const s = addDays(C.today, k), dd = asDate(s);
+      return `<button type="button" class="ad${s === S.date ? ' on' : ''}" data-goto="${s}" aria-label="${E(dayLabel(s))}: заявок ${req[s] || 0}, броней ${counts[s] ?? '…'}"><i>${k === 0 ? 'сегодня' : k === 1 ? 'завтра' : WD[dd.getUTCDay()]}</i><b>${dd.getUTCDate()}</b>${req[s] ? `<u>${req[s]}</u>` : ''}<small>${counts[s] ? `брони: ${counts[s]}` : '&nbsp;'}</small></button>`; }).join('');
+  }
 
   function draw() {
     const d = S.day, cols = `repeat(${C.hours}, 1fr)`, wait = d.pending.filter(q => q.status === 'request');
@@ -40,18 +54,21 @@
       </div></div>`).join('');
     const fresh = S.seen ? d.pending.filter(q => !S.seen.has(q.id)).map(q => q.id) : [];
     S.seen = new Set([...(S.seen || []), ...d.pending.map(q => q.id)]);
-    $('reqs').innerHTML = d.pending.length ? d.pending.map(q => `<div class="req ${q.status}${fresh.includes(q.id) ? ' in' : ''}">
-      <div class="t">${q.status === 'offered' ? 'предложили другое время, ждём гостя' : 'с сайта'}</div><b>${E(q.name)} · ${E(hall(q.hall_id).name)}</b>
-      <p>${E(dayShort(q.date))}, ${span(q.start, q.hours)} · гостей: ${q.guests} · ${rub(q.total)}<br><a href="tel:${E(q.phone)}">${E(q.phone)}</a>${q.comment ? `<br>«${E(q.comment)}»` : ''}</p>
-      <div class="a"><button type="button" class="yes" data-do="confirm" data-id="${q.id}">Подтвердить</button><button type="button" class="no" data-form="offer" data-id="${q.id}">Другое время</button><button type="button" class="no" data-do="reject" data-id="${q.id}">Отклонить</button><button type="button" class="no" data-goto="${E(q.date)}">Показать в сетке</button></div></div>`).join('')
+    // заявки по дням: «Сегодня», «Завтра», дальше дата; одна главная кнопка, остальное тихими ссылками
+    const byDay = {}; d.pending.slice().sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start).forEach(q => (byDay[q.date] = byDay[q.date] || []).push(q));
+    $('reqs').innerHTML = d.pending.length ? Object.entries(byDay).map(([date, list]) => `<h3 class="rday">${E(dayLabel(date))}<span>${list.length}</span></h3>` + list.map(q => `<div class="req ${q.status}${fresh.includes(q.id) ? ' in' : ''}">
+      <div class="t">${q.status === 'offered' ? 'предложили другое время, ждём гостя' : 'заявка с сайта'}</div><b>${E(hall(q.hall_id).name)} · ${span(q.start, q.hours)}</b>
+      <p>${E(q.name)} · гостей: ${q.guests} · ${rub(q.total)}<br><a class="tel" href="tel:${E(q.phone)}">${E(fmtTel(q.phone))}</a>${q.comment ? `<br><span class="cm">«${E(q.comment)}»</span>` : ''}</p>
+      <div class="a2">${q.status === 'request' ? `<button type="button" class="yes" data-do="confirm" data-id="${q.id}">Подтвердить</button>` : ''}<div class="lk"><button type="button" data-form="offer" data-id="${q.id}">Другое время</button><button type="button" data-goto="${E(q.date)}" data-hl="${q.id}">В сетке</button><button type="button" class="dang" data-do="reject" data-id="${q.id}">Отклонить</button></div></div></div>`).join('')).join('')
       : '<p class="empty">Новых заявок нет.</p>';
+    drawDays();
   }
 
   function drawCb(list) {
     const open = list.filter(c => !c.done_at);
     $('sCb').textContent = open.length;
     $('cbs').innerHTML = list.length ? list.map(c => `<div class="req${c.done_at ? ' ok' : ''}"><div class="t">${new Date(c.created_at).toLocaleString('ru', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
-      <b>${E(c.name)}</b><p><a href="tel:${E(c.phone)}">${E(c.phone)}</a>${c.comment ? `<br>«${E(c.comment)}»` : ''}</p>
+      <b>${E(c.name)}</b><p><a class="tel" href="tel:${E(c.phone)}">${E(fmtTel(c.phone))}</a>${c.comment ? `<br>«${E(c.comment)}»` : ''}</p>
       ${c.done_at ? `<div class="st">Перезвонили · ${E(c.done_by)}</div>` : `<div class="a"><button type="button" class="yes" data-cb="${c.id}">Перезвонили</button></div>`}</div>`).join('')
       : '<p class="empty">Просьб перезвонить нет.</p>';
   }
@@ -84,7 +101,7 @@
     const p = S.pop; if (!p) return;
     let k = 0; while (k < n && p.i + k < C.hours && isFree(p.h, p.i + k)) k++;
     if (k < n) toast('Записали на меньшее время', `Дальше зал занят: ${k} ${hrsWord(k)}`, 'alt');
-    try { await api('/bookings', { hall_id: p.h, date: S.date, start: p.i, hours: k, name: $('pName').value, phone: $('pTel').value }); closePop(); await load(true); }
+    try { await api('/bookings', { hall_id: p.h, date: S.date, start: p.i, hours: k, name: $('pName').value, phone: $('pTel').value }); closePop(); await load(true); loadCounts().catch(() => {}); }
     catch (e) { onErr(e); }
   }
 
@@ -109,7 +126,7 @@
       <div class="row"><button type="button" class="btn" data-save="${action}" data-id="${b.id}">${action === 'offer' ? 'Предложить гостю' : 'Перенести'}</button><button type="button" class="btn g" data-close>Отмена</button></div>`;
     if (!$('dlg').open) $('dlg').showModal();
   }
-  async function act(id, action, body = {}) { await api(`/bookings/${id}/${action}`, body); if ($('dlg').open) $('dlg').close(); await load(true); }
+  async function act(id, action, body = {}) { await api(`/bookings/${id}/${action}`, body); if ($('dlg').open) $('dlg').close(); await load(true); loadCounts().catch(() => {}); }
 
   document.addEventListener('click', async ev => {
     const t = ev.target;
@@ -118,7 +135,7 @@
     if (t.closest('#popX')) return closePop();
     const cell = t.closest('.cell'); if (cell) return openPop(cell);
     const bk = t.closest('.bk'); if (bk) return details(find(+bk.dataset.b));
-    const go2 = t.closest('[data-goto]'); if (go2) return go(go2.dataset.goto);
+    const go2 = t.closest('[data-goto]'); if (go2) { const hl = go2.dataset.hl; go(go2.dataset.goto); if (hl) setTimeout(() => { const el = document.querySelector(`.bk[data-b="${hl}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); } }, 500); return; }
     if (t.closest('[data-close]')) return $('dlg').close();
     const f = t.closest('[data-form]'); if (f) return moveForm(find(+f.dataset.id), f.dataset.form);
     const d = t.closest('[data-do]');
@@ -162,8 +179,8 @@
   function showApp(name) {
     $('login').hidden = true; $('app').hidden = false; $('who').textContent = name;
     S.date = S.date || C.today; $('pick').value = S.date; S.seen = null;
-    load(true).catch(onErr);
-    clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !$('dlg').open) load().catch(onErr); }, 7000);
+    load(true).catch(onErr); loadCounts().catch(() => {});
+    let tick = 0; clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !$('dlg').open) { load().catch(onErr); if (++tick % 8 === 0) loadCounts().catch(() => {}); } }, 7000);
   }
   $('login').addEventListener('submit', async ev => {
     ev.preventDefault(); $('lErr').textContent = '';
