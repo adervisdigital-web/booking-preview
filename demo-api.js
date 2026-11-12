@@ -32,7 +32,7 @@
         rates: x.rates || { day: x.p, night: x.p, weekend: x.p } }));
     const s = c.site || {};
     cfg = { name: c.name || 'Бронь залов', sub: c.sub || 'Выберите зал и время', lead: s.lead || '', tags: c.tags || [], hoursText: s.hoursText || '', ownFood: s.ownFood || '', address: s.address || '', mapUrl: s.mapUrl || '',
-      phone: s.phone || '', phoneHref: s.phoneHref || '', vk: s.vk || '', from: FROM, hours: HOURS, closeLabel: s.closeLabel || 'до закрытия', holidays: s.holidays || [], horizonDays: 30, programs: s.programs || [], operator: {}, halls, facts: s.facts || [], faq: s.faq || [], occasions: s.occasions || [], tzOffset: s.tzOffset ?? 5, logo: s.logo || '', logoBig: s.logoBig || '' };
+      phone: s.phone || '', phoneHref: s.phoneHref || '', vk: s.vk || '', from: FROM, hours: HOURS, closeLabel: s.closeLabel || 'до закрытия', holidays: s.holidays || [], horizonDays: 90, programs: s.programs || [], operator: {}, halls, facts: s.facts || [], faq: s.faq || [], occasions: s.occasions || [], tzOffset: s.tzOffset ?? 5, logo: s.logo || '', logoBig: s.logoBig || '' };
     return cfg;
   }
 

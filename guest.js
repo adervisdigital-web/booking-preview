@@ -101,7 +101,12 @@
   function drawDays() {
     $('days').innerHTML = Array.from({ length: 14 }, (_, k) => { const s = addDays(C.today, k), d = asDate(s), c = dayCache[s], n = c ? fitsDay(c.d) : null;
       const lab = n === null ? '' : n ? `, подходит залов: ${n}` : ', под ваши условия мест нет';
-      return `<button type="button" class="day${s === st.date ? ' on' : ''}${n === 0 ? ' none' : ''}" data-day="${s}" aria-label="${E(dayName(s))}${lab}"><b>${d.getUTCDate()}</b><i>${k === 0 ? 'сегодня' : WD[d.getUTCDay()]}</i>${n ? `<u class="av">${n}</u>` : ''}</button>`; }).join('');
+      return `<button type="button" class="day${s === st.date ? ' on' : ''}${n === 0 ? ' none' : ''}" data-day="${s}" aria-label="${E(dayName(s))}${lab}"><b>${d.getUTCDate()}</b><i>${k === 0 ? 'сегодня' : WD[d.getUTCDay()]}</i>${n ? `<u class="av">${n}</u>` : ''}</button>`; }).join('')
+      + (st.date > addDays(C.today, 13) ? `<button type="button" class="day far on" data-day="${st.date}" aria-label="${E(dayName(st.date))}"><b>${asDate(st.date).getUTCDate()}</b><i>${MON[asDate(st.date).getUTCMonth()].slice(0, 3)}, ${WD[asDate(st.date).getUTCDay()]}</i></button>` : '');
+    // «Другая дата»: календарь на весь срок брони (horizonDays), выбранная дальняя дата встаёт плашкой в конец ленты
+    const dz = $('days'), on = dz.querySelector('.day.on');   // выбранный день всегда в поле зрения ленты
+    if (on && (on.offsetLeft < dz.scrollLeft || on.offsetLeft + on.offsetWidth > dz.scrollLeft + dz.clientWidth)) dz.scrollLeft = on.offsetLeft - dz.clientWidth + on.offsetWidth + 8;
+    const pd = $('pDate'); pd.min = C.today; pd.max = addDays(C.today, C.horizonDays || 30); pd.value = st.date;
   }
   async function loadAvail() {
     const now = Date.now(), dates = Array.from({ length: 14 }, (_, k) => addDays(C.today, k)).filter(s => !dayCache[s] || now - dayCache[s].t > 60000);
@@ -157,12 +162,10 @@
     // карточки залов: крупное фото, полоска дня, окно и цена; справа (на телефоне ниже) панель выбранного зала
     $('slots').innerHTML = rows.map(({ x, r }) => { const on = st.pick === x.id;
       const fitTxt = r.f === 'tight' ? `тесновато: +${x.extra} ₽/ч за гостя сверх ${x.cap}` : r.f === 'no' ? 'не поместитесь' : '';
-      const mini = Array.from({ length: C.hours }, (_, i) => { const b = taken(x.id, i), s = !b && st.sel && st.sel.id === x.id && i >= st.sel.a && i <= st.sel.b;
-        return `<i class="${b ? 'b' : s ? 's' : night(i) ? 'n' : ''}"></i>`; }).join('');
       return `<article class="hc f-${r.f}${on ? ' on' : ''}${r.rank > 5 ? ' faded' : ''}" id="b-${x.id}">
         <button type="button" class="hcb" data-hpick="${x.id}" aria-label="${E(x.name)}, до ${x.cap} человек, ${E(r.text)}">
         <span class="hcph">${x.photo ? `<img src="${E(x.photo)}" alt="" loading="lazy" decoding="async">` : ''}<span class="hccap">до ${x.cap} чел.</span>${x.slug === rec ? '<em class="rec">советуем</em>' : ''}</span>
-        <span class="hcn">${E(x.name)}</span><span class="mini" style="--hours:${C.hours}" aria-hidden="true">${mini}</span>
+        <span class="hcn">${E(x.name)}</span>
         <span class="hcw${r.w && r.full ? '' : ' part'}">${r.text}</span>${fitTxt ? `<span class="hcfit">${fitTxt}</span>` : ''}</button></article>`; }).join('');
     drawPicker();
   }
@@ -196,7 +199,7 @@
   async function findNext() {
     const my = ++scan, g = guests();
     for (let k = 1; k <= 14; k++) {
-      const date = addDays(st.date, k); if (date > addDays(C.today, 13)) break;
+      const date = addDays(st.date, k); if (date > addDays(C.today, C.horizonDays || 30)) break;
       const d = await api(`/day?date=${date}`).catch(() => null); if (my !== scan) return; if (!d) continue;
       const n = C.halls.filter(x => g <= x.cap && (() => { const w = bestWin(d, x.id, st.dur); return w && (st.dur >= 99 || w.n >= st.dur); })()).length;
       if (n) { const el = $('nextFree'); if (el) el.innerHTML = `<button type="button" class="nextday" data-day="${date}">Ближайшее: ${E(dayName(date))}, ${n} ${n === 1 ? 'зал' : n < 5 ? 'зала' : 'залов'} →</button>`; return; }
@@ -206,10 +209,14 @@
   function drawPlan() {
     $('pGu').textContent = guests();
     $('pDur').innerHTML = DUR.map(([v, l]) => `<button type="button" class="chip${st.dur === v ? ' on' : ''}" data-dur="${v}" aria-pressed="${st.dur === v}">${l}</button>`).join('');
-    const occ = C.occasions || [];
-    $('plan').querySelector('.pocc').hidden = !occ.length;
-    $('pOcc').innerHTML = occ.map(o => `<button type="button" class="chip${st.occ === o.title ? ' on' : ''}" data-occ="${E(o.title)}" aria-pressed="${st.occ === o.title}">${E(o.title)}</button>`).join('');
-    const o = occ.find(q => q.title === st.occ); $('planHint').hidden = !o; $('planHint').textContent = o ? o.text : '';
+    $('durNote').textContent = st.dur >= 99 ? 'Ночной пакет: с вечера до закрытия, цену покажем у зала' : `Цена за час. Сразу посчитаем ${st.dur} ${hrsWord(st.dur)}, потом можно добавить или убрать час`;
+    drawOcc();
+  }
+  // повод спрашиваем в заявке: готовые варианты и «Другое» (тогда пишут сами в пожеланиях)
+  function drawOcc() {
+    const list = [...(C.occasions || []).map(o => o.title), 'Другое'];
+    $('fOcc').innerHTML = list.map(t => `<button type="button" class="chip${st.occ === t ? ' on' : ''}" data-focc="${E(t)}" aria-pressed="${st.occ === t}">${E(t)}</button>`).join('');
+    $('fCom').placeholder = st.occ === 'Другое' ? 'Какой повод? Юбилей, свадьба, выпускной…' : 'Торт, караоке, украшение зала…';
   }
   function setGuests(n) { $('fGu').value = Math.max(1, Math.min(60, n)); prefs.set({ g: guests() }); drawPlan(); drawSlots(); drawBar(); drawDays(); }
   // нижняя панель: −1 ч / +1 ч без прицеливания в клетки
@@ -292,7 +299,7 @@
     if (!$('fOk').checked) { $('err').textContent = 'Отметьте согласие на обработку персональных данных'; return; }
     $('send').disabled = true; $('err').textContent = '';
     try {
-      const r = await api('/requests', { hall: hall(s.id).slug, date: st.date, start: s.a, hours: s.b - s.a + 1, name: $('fName').value, phone: $('fTel').value, guests: parseInt($('fGu').value, 10), comment: $('fCom').value, consent: true, website: $('fWeb').value });
+      const r = await api('/requests', { hall: hall(s.id).slug, date: st.date, start: s.a, hours: s.b - s.a + 1, name: $('fName').value, phone: $('fTel').value, guests: parseInt($('fGu').value, 10), comment: [st.occ && st.occ !== 'Другое' ? st.occ : '', $('fCom').value.trim()].filter(Boolean).join('. '), consent: true, website: $('fWeb').value });
       store.set([...store.get(), r.token]); prefs.set({ name: $('fName').value.trim(), tel: $('fTel').value });
       st.mine.push(r); st.sel = null; form(false); drawMine(); hit('book:sent');
       toast('Заявка отправлена', 'Администратор подтвердит бронь', '');
@@ -320,10 +327,7 @@
     const du = t.closest('[data-dur]'); if (du) { st.dur = +du.dataset.dur; prefs.set({ dur: st.dur }); drawPlan(); drawSlots(); drawDays(); return; }
     const aj = t.closest('[data-adj]'); if (aj) { adjust(+aj.dataset.adj); return; }
     if (t.closest('#barX')) { st.sel = null; drawSlots(); drawBar(); return; }
-    const oc = t.closest('[data-occ]'); if (oc) { st.occ = st.occ === oc.dataset.occ ? null : oc.dataset.occ;
-      const o = (C.occasions || []).find(q => q.title === st.occ), h = o && C.halls.find(x => x.slug === o.hall);
-      if (h && guests() > h.cap) setGuests(h.cap);
-      if (st.occ && !$('fCom').value) $('fCom').value = st.occ; drawPlan(); drawSlots(); return; }
+    const oc = t.closest('[data-focc]'); if (oc) { st.occ = st.occ === oc.dataset.focc ? null : oc.dataset.focc; drawOcc(); if (st.occ === 'Другое') $('fCom').focus(); return; }
     const w = t.closest('[data-wall]'); if (w) { openHall(+w.dataset.wall, wall.date, w.classList.contains('on')).catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const p = t.closest('[data-pick]'); if (p) { if ($('hallDlg').open) $('hallDlg').close(); openHall(+p.dataset.pick, st.date, false).catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const mo = t.closest('[data-more]'); if (mo) { openMore(+mo.dataset.more); return; }
@@ -345,6 +349,10 @@
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') { form(false); cbForm(false); } });
   $('sheet').addEventListener('submit', send);
   $('cbSheet').addEventListener('submit', sendCb);
+  // «Другая дата»: открываем календарь браузера; дальше 14 дней тоже можно (до горизонта брони)
+  $('dayCal').addEventListener('click', ev => { const pd = $('pDate'); if (ev.target === pd) return; ev.preventDefault(); try { pd.showPicker(); } catch { pd.focus(); } });
+  $('pDate').addEventListener('change', () => { const v = $('pDate').value; if (!v || v < C.today || v > $('pDate').max) return;
+    st.date = v; st.sel = null; drawDays(); drawBar(); loadDay().then(() => goTo('fitSum')).catch(e => toast('Нет связи', e.message, 'alt')); });
   $('fGu').addEventListener('input', () => { drawSum(); drawBar(); $('pGu').textContent = guests(); prefs.set({ g: guests() }); drawSlots(); drawDays(); });
   for (const id of ['fTel', 'cbTel']) { const el = $(id); if (el) { el.addEventListener('input', () => maskTel(el)); el.addEventListener('focus', () => { if (!el.value) el.value = '+7 '; }); } }
   { const p = prefs.get(); if (p.g) $('fGu').value = p.g; if ([2, 3, 4, 6, 99].includes(p.dur)) st.dur = p.dur; if (p.name) $('fName').value = p.name; if (p.tel) { $('fTel').value = p.tel; if ($('cbTel')) $('cbTel').value = p.tel; } if (p.name && $('cbName')) $('cbName').value = p.name; }

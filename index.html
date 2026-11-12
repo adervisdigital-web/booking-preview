@@ -45,15 +45,13 @@
       <div class="plan" id="plan" role="group" aria-label="Подбор зала">
         <div class="pg"><span class="pl">Сколько вас</span>
           <div class="stepper"><button type="button" data-g="-1" aria-label="Меньше гостей">−</button><output id="pGu" aria-live="polite">4</output><button type="button" data-g="1" aria-label="Больше гостей">+</button></div></div>
-        <div class="pg"><span class="pl">На сколько часов</span><div class="chips" id="pDur"></div></div>
-        <div class="pg pocc"><span class="pl">Повод</span><div class="chips" id="pOcc"></div></div>
+        <div class="pg"><span class="pl">На сколько часов</span><div class="chips" id="pDur"></div><small class="pgnote" id="durNote"></small></div>
       </div>
-      <p class="planhint" id="planHint" hidden></p>
-      <div class="daysbar"><nav class="days" id="days" aria-label="Выбор дня"></nav><div class="hint"><em>свободно</em><em class="n">ночь, свой тариф</em><em class="b">занято</em><em class="s">ваш выбор</em></div></div>
+      <div class="daysbar"><div class="dayrow"><nav class="days" id="days" aria-label="Выбор дня"></nav><label class="daycal" id="dayCal"><span aria-hidden="true">📅</span><b>Другая дата</b><input type="date" id="pDate" aria-label="Выбрать другую дату"></label></div><div class="hint"><em>свободно</em><em class="n">ночь, свой тариф</em><em class="b">занято</em><em class="s">ваш выбор</em></div></div>
       <div class="fitsum" id="fitSum" aria-live="polite"></div>
       <div class="mine" id="mine"></div>
       <div class="bookwrap"><div class="hcards" id="slots"></div><aside class="picker" id="picker" aria-live="polite"></aside></div>
-      <p class="booknote">Выберите зал, затем время: зал выделится сразу на выбранную длительность, соседние часы добавляют или убирают по одному. Заявку подтвердит администратор, статус появится здесь.</p>
+      <p class="booknote">Выберите день и зал, затем час начала: выделим сразу нужное число часов. Соседние часы добавляют или убирают по одному. Заявку подтвердит администратор, статус появится здесь.</p>
     </section>
 
     <section class="block" id="occasions" aria-labelledby="occT" hidden data-off>
@@ -114,7 +112,8 @@
     <div class="sum" id="sum"></div>
     <label class="fld"><i>Имя</i><input id="fName" name="name" autocomplete="given-name" maxlength="60" placeholder="Как к вам обращаться" required></label>
     <div class="two"><label class="fld"><i>Телефон</i><input id="fTel" name="tel" type="tel" autocomplete="tel" inputmode="tel" placeholder="+7" required></label><label class="fld sm"><i>Гостей</i><input id="fGu" inputmode="numeric" value="4" maxlength="2" required></label></div>
-    <label class="fld"><i>Пожелания</i><input id="fCom" maxlength="300" placeholder="День рождения, торт, караоке…"></label>
+    <div class="fld focc"><i>Повод <em>необязательно</em></i><div class="chips" id="fOcc"></div></div>
+    <label class="fld"><i>Пожелания</i><input id="fCom" maxlength="300" placeholder="Торт, караоке, украшение зала…"></label>
     <label class="hp" aria-hidden="true">Сайт<input id="fWeb" tabindex="-1" autocomplete="off"></label>
     <label class="consent"><input type="checkbox" id="fOk"><span>Даю <a href="consent.html" target="_blank">согласие на обработку персональных данных</a></span></label>
     <p class="err" id="err" role="alert"></p>
