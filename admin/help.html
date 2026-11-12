@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Как работать с бронями</title>
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<style>
+  :root { --ink: #0a0a0f; --panel: #15131c; --line: #2a2733; --paper: #f2eef6; --smoke: #a39fae; --red: #e8323c; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 18px 64px; }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  .sub { color: var(--smoke); margin: 0 0 28px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin: 0 0 14px; }
+  h2 { font-size: 18px; margin: 0 0 10px; display: flex; gap: 10px; align-items: center; }
+  h2 b { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--red); color: #fff; font-size: 14px; flex: none; }
+  ul, ol { margin: 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  .k { display: inline-block; padding: 0 8px; border-radius: 6px; background: #241f2e; border: 1px solid var(--line); font-size: 14px; white-space: nowrap; }
+  .back { display: inline-block; margin-bottom: 18px; color: var(--smoke); text-decoration: none; }
+  .back:hover { color: var(--paper); }
+  @media print { body { background: #fff; color: #000; } section { background: #fff; border-color: #ccc; } .back { display: none; } .k { background: #f2f2f2; border-color: #ccc; } }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">← В кабинет</a>
+  <h1>Как работать с бронями</h1>
+  <p class="sub">Короткая памятка для администратора. Её можно распечатать.</p>
+
+  <section>
+    <h2><b>1</b>Вечер в залах</h2>
+    <ul>
+      <li>Наверху блок <span class="k">Сейчас в залах</span>: кто сидит в каждом зале и до скольки, кто заканчивает в этот час, куда скоро придут. Свободные залы списком ниже: нажмите на зал, чтобы записать гостя.</li>
+      <li>Гости пришли: откройте бронь и нажмите <span class="k">Пришли</span>. Не пришли: <span class="k">Не пришли</span>. Это попадёт в историю гостя и в отчёт.</li>
+      <li>Гости хотят остаться: <span class="k">Продлить на час</span>. Если следующий час занят, кабинет скажет об этом. Ушли раньше: <span class="k">−1 час</span>. Сумма пересчитается сама.</li>
+      <li>Внизу день можно смотреть <span class="k">Списком</span> (удобно с телефона) или <span class="k">Сеткой</span> по залам и часам.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><b>2</b>Новая заявка с сайта</h2>
+    <ul>
+      <li>Заявка приходит в Telegram с кнопками <span class="k">Подтвердить</span> и <span class="k">Отклонить</span>: можно ответить прямо оттуда. В кабинете она справа в блоке <span class="k">Заявки</span>, кабинет пищит, если открыт.</li>
+      <li>Под заявкой видно, бывал ли гость раньше и приходил ли он.</li>
+      <li>Всё в порядке: <span class="k">Подтвердить</span>. Сразу откроется готовый текст для гостя: отправьте его в WhatsApp, Telegram или SMS одной кнопкой.</li>
+      <li>Время занято: <span class="k">Другое время</span>, выберите свободное. Гость согласится или откажется на сайте или кнопкой в Telegram.</li>
+      <li>Если гость подключил Telegram на сайте, ответ и напоминание за 3 часа до визита ему придут сами.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><b>3</b>Бронь по телефону</h2>
+    <ol>
+      <li>Нажмите <span class="k">+ Бронь</span> (на телефоне красная кнопка внизу) или пустую клетку в сетке.</li>
+      <li>Сначала телефон гостя: если он уже бывал, кабинет подставит имя и покажет, сколько раз приходил и не пропускал ли.</li>
+      <li>Зал, дата, начало, сколько часов, гостей, пожелания и предоплата. Сумма считается сразу по тарифу.</li>
+    </ol>
+    <p>Бронь сразу закрывает это время на сайте.</p>
+  </section>
+
+  <section>
+    <h2><b>4</b>Изменить, перенести, отменить</h2>
+    <ul>
+      <li>Нажмите на бронь: <span class="k">Изменить данные</span> (имя, телефон, гостей, пожелания, предоплата), <span class="k">Перенести</span>, <span class="k">Отменить бронь</span>.</li>
+      <li>В карточке есть <span class="k">История</span>: кто и когда подтвердил, перенёс, продлил.</li>
+      <li>Найти гостя: поле поиска наверху, по телефону (хватит 4 последних цифр) или по имени.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><b>5</b>Перезвонить</h2>
+    <p>Если гость нажал на сайте «Перезвоните мне», он появится в блоке <span class="k">Перезвонить</span> под заявками и в Telegram. После звонка нажмите <span class="k">Перезвонили</span>, тогда коллеги увидят, кто уже связался.</p>
+  </section>
+
+  <section>
+    <h2><b>6</b>Деньги и статистика</h2>
+    <ul>
+      <li><span class="k">Отчёт за месяц</span>: сумма броней, часы, предоплаты, неявки, загрузка каждого зала. Сумма по тарифу залов, без бара.</li>
+      <li>Каждый день на открытии в Telegram приходит сводка: брони на день и заявки без ответа.</li>
+      <li><span class="k">Выгрузить месяц в таблицу</span> скачивает все брони месяца для Excel и Google Таблиц.</li>
+      <li><span class="k">Статистика сайта</span>: сколько людей заходили, открывали залы и отправляли заявки.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><b>7</b>Если что-то не так</h2>
+    <ul>
+      <li>Не приходят уведомления в Telegram: напишите боту /start. Если он ответит «номер этого чата …», этот номер нужно добавить в настройки (это делает тот, кто обслуживает сайт).</li>
+      <li>Кабинет не пищит: внизу включите <span class="k">Звук заявок</span> и нажмите в любом месте страницы (браузер разрешает звук только после нажатия).</li>
+      <li>Забыли пароль: новый пароль выдаёт тот, кто обслуживает сайт.</li>
+      <li>Работаете с чужого компьютера: в конце нажмите <span class="k">Выйти</span>.</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

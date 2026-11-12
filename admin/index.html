@@ -10,6 +10,7 @@
 <script src="../demo-api.js"></script>
 <link rel="stylesheet" href="../app.css">
 <link rel="stylesheet" href="admin.css">
+<script src="../pricing.js" defer></script>
 <script src="admin.js" defer></script>
 </head>
 <body>
@@ -26,22 +27,23 @@
   <div class="admin" id="app" hidden>
     <div class="am">
       <div class="ah"><img class="alogo" src="../brand/logo-96.png" alt="" width="40" height="37"><div class="brand sm" id="aName"></div><span class="role" id="who"></span>
+        <div class="qs"><input id="q" type="search" placeholder="Найти гостя: телефон или имя" autocomplete="off" aria-label="Поиск брони по телефону или имени"><div class="qres" id="qres" hidden></div></div>
+        <button type="button" class="btn add" id="addBtn">+ Бронь</button></div>
+      <div class="dline"><h2 class="dtitle" id="dTitle"></h2>
         <div class="dsel"><button type="button" id="prev" aria-label="Предыдущий день">‹</button><input type="date" id="pick" aria-label="Дата"><button type="button" id="next" aria-label="Следующий день">›</button><button type="button" class="today" id="today">Сегодня</button></div></div>
       <nav class="adays" id="adays" aria-label="Дни: заявки и брони"></nav>
-      <div class="kpi"><div class="r"><i>Новые заявки</i><b id="kReq">0</b></div><div><i>Броней на день</i><b id="kB">0</b></div><div><i>Загрузка вечером</i><b id="kL">0%</b></div></div>
-      <div class="gridwrap"><div class="grid" id="grid"></div></div>
-      <div class="legend"><em class="l1">подтверждено</em><em class="l2">заявка гостя</em><em class="l4">предложено время</em><em class="l3">бронь по телефону</em><span>Нажмите на пустую клетку, чтобы записать бронь по телефону</span></div>
-      <div class="tools"><button type="button" id="statsBtn">Статистика сайта</button><button type="button" id="csv">Выгрузить месяц в таблицу</button><button type="button" id="out">Выйти</button></div>
+      <div class="kpi"><div class="r"><i>Новые заявки</i><b id="kReq">0</b></div><div><i>Броней на день</i><b id="kB">0</b></div><div><i>Сумма за день</i><b id="kSum">0 ₽</b></div></div>
+      <section class="now" id="now" hidden><h3>Сейчас в залах</h3><div class="nowl" id="nowList"></div></section>
+      <div class="vt"><div class="seg sm" role="tablist"><button type="button" id="vList">Список</button><button type="button" id="vGrid">Сетка</button></div></div>
+      <div class="list" id="list"></div>
+      <div id="gridBox"><div class="gridwrap"><div class="grid" id="grid"></div></div>
+        <div class="legend"><em class="l1">подтверждено</em><em class="l2">заявка гостя</em><em class="l4">предложено время</em><em class="l3">бронь по телефону</em><span>Пустая клетка: записать бронь</span></div></div>
+      <div class="tools"><button type="button" id="repBtn">Отчёт за месяц</button><button type="button" id="statsBtn">Статистика сайта</button><button type="button" id="csv">Выгрузить месяц в таблицу</button><button type="button" id="snd"></button><a href="help.html" target="_blank" rel="noopener">Памятка</a><button type="button" id="out">Выйти</button></div>
     </div>
     <aside class="side"><h2>Заявки <span id="sReq">0</span></h2><div id="reqs"></div>
       <h2 class="h2b">Перезвонить <span id="sCb">0</span></h2><div id="cbs"></div></aside>
+    <button type="button" class="fab" id="fab" aria-label="Новая бронь">+</button>
   </div>
-
-  <div class="pop" id="pop"><b id="popT"></b>
-    <label class="fld"><i>Имя (необязательно)</i><input id="pName" maxlength="60"></label>
-    <label class="fld"><i>Телефон (необязательно)</i><input id="pTel" type="tel" inputmode="tel"></label>
-    <div class="pr"><button type="button" data-n="1">1 ч</button><button type="button" data-n="2">2 ч</button><button type="button" data-n="3">3 ч</button><button type="button" data-n="4">4 ч</button></div>
-    <button type="button" class="pc" id="popX">Отмена</button></div>
 
   <dialog id="dlg"><div id="dlgBody"></div></dialog>
 </body>

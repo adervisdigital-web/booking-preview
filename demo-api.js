@@ -57,7 +57,13 @@
   }
   const save = d => lsSet(STORE, JSON.stringify(d));
   const view = b => { const p = place(b.start_h); return { hall_id: b.hall_id, date: p.date, start: p.start, hours: b.end_h - b.start_h, status: b.status, total: b.total }; };
-  const adm = b => ({ id: b.id, token: b.token, source: b.source, name: b.name, phone: b.phone, guests: b.guests, comment: b.comment, created_at: b.created_at, ...view(b) });
+  const adm = b => ({ id: b.id, token: b.token, source: b.source, name: b.name, phone: b.phone, guests: b.guests, comment: b.comment, created_at: b.created_at, visit: b.visit || '', prepaid: b.prepaid || 0, ...view(b) });
+  const hallName = id => (cfg.halls.find(x => x.id === id) || {}).name || '';
+  const ev = (b, action, detail = '') => { b.events = b.events || []; b.events.push({ at: Date.now(), who: 'Предпросмотр', action, detail }); };
+  const gstat = (phone, except) => { const l = db().rows.filter(r => r.phone && r.phone === phone && r.id !== except && r.status === 'confirmed');
+    const past = l.filter(r => r.start_h <= nowH()), ns = past.filter(r => r.visit === 'noshow').length, ok = past.filter(r => r.visit !== 'noshow');
+    const last = past.sort((a, b) => b.start_h - a.start_h)[0], nm = db().rows.filter(r => r.phone === phone && r.name).pop();
+    return { phone, name: nm ? nm.name : '', visits: ok.length, noshow: ns, sum: ok.reduce((x, r) => x + r.total, 0), last: last ? place(last.start_h).date : null, upcoming: l.filter(r => r.start_h > nowH()).length }; };
   const clash = (d, hall, a, z, self) => d.rows.some(b => b.id !== self && b.hall_id === hall && ACTIVE.includes(b.status) && b.start_h < z && b.end_h > a);
   const pastOf = date => Math.max(0, Math.min(HOURS, nowH() + 1 - stamp(dayNoOf(date), 0)));
   function slot(date, start, n, guest) {
@@ -109,7 +115,7 @@
     if (path === 'admin/bookings' && method === 'POST') {
       const h = cfg.halls.find(x => x.id === body.hall_id), [a, z] = slot(body.date, body.start, body.hours, false);
       if (clash(d, h.id, a, z)) throw new E(409, 'slot_taken', 'Это время уже занято');
-      const b = { id: ++d.seq, token: token(), hall_id: h.id, start_h: a, end_h: z, status: 'confirmed', source: 'phone', name: String(body.name || ''), phone: body.phone ? phoneOf(body.phone) : '', guests: 0, comment: '', total: h.price * (z - a), created_at: Date.now() };
+      const b = { id: ++d.seq, token: token(), hall_id: h.id, start_h: a, end_h: z, status: 'confirmed', source: 'phone', name: String(body.name || ''), phone: body.phone ? phoneOf(body.phone) : '', guests: +body.guests || 0, comment: String(body.comment || '').slice(0, 300), prepaid: Math.max(0, +body.prepaid || 0), total: Pricing.total(h, body.date, body.start, body.hours, +body.guests || 1, cfg), created_at: Date.now() };
       d.rows.push(b); save(d); return adm(b);
     }
     if ((m = /^admin\/bookings\/(\d+)\/(confirm|reject|cancel|offer|move)$/.exec(path))) {
@@ -126,6 +132,31 @@
       }
       save(d); return adm(b);
     }
+    if ((m = /^admin\/bookings\/(\d+)$/.exec(path))) { const b = d.rows.find(r => r.id === +m[1]); if (!b) throw new E(404, 'not_found', 'Бронь не найдена');
+      return { ...adm(b), hall: hallName(b.hall_id), events: b.events || [{ at: b.created_at, who: b.source === 'site' ? 'гость' : 'Предпросмотр', action: b.source === 'site' ? 'заявка' : 'бронь по телефону', detail: '' }], guest: b.phone ? gstat(b.phone, b.id) : null }; }
+    if ((m = /^admin\/bookings\/(\d+)\/(edit|extend|visit)$/.exec(path))) {
+      const b = d.rows.find(r => r.id === +m[1]); if (!b) throw new E(404, 'not_found', 'Бронь не найдена');
+      const h = cfg.halls.find(x => x.id === b.hall_id), p = place(b.start_h);
+      if (m[2] === 'edit') { for (const k of ['name', 'comment']) if (k in body) b[k] = String(body[k] || '').slice(0, k === 'name' ? 60 : 300);
+        if ('phone' in body) b.phone = body.phone ? phoneOf(body.phone) : ''; if ('guests' in body) b.guests = +body.guests || 0; if ('prepaid' in body) b.prepaid = Math.max(0, +body.prepaid || 0);
+        b.total = Pricing.total(h, p.date, p.start, b.end_h - b.start_h, b.guests || 1, cfg); ev(b, 'изменил'); }
+      if (m[2] === 'extend') { if (b.status !== 'confirmed') throw new E(409, 'state', 'Продлить можно только подтверждённую бронь');
+        const z = b.end_h + (body.by > 0 ? 1 : -1); if (z <= b.start_h) throw new E(400, 'too_short', 'Короче часа сделать нельзя');
+        if (z > stamp(dayNoOf(p.date), HOURS)) throw new E(400, 'closing', 'Дальше закрытие'); if (clash(d, b.hall_id, b.start_h, z, b.id)) throw new E(409, 'slot_taken', 'Следующий час в этом зале уже занят');
+        b.end_h = z; b.total = Pricing.total(h, p.date, p.start, z - b.start_h, b.guests || 1, cfg); ev(b, body.by > 0 ? 'продлил на 1 ч' : 'сократил на 1 ч'); }
+      if (m[2] === 'visit') { if (body.visit === 'noshow' && b.start_h > nowH()) throw new E(409, 'early', 'Бронь ещё не началась'); b.visit = body.visit || ''; ev(b, { arrived: 'гости пришли', noshow: 'гости не пришли', '': 'снял отметку' }[b.visit]); }
+      save(d); return adm(b);
+    }
+    if (path === 'admin/guest') { const n = String(q.get('phone') || '').replace(/\D/g, '').slice(-10); return n.length === 10 ? gstat('+7' + n) : {}; }
+    if (path === 'admin/search') { const t = String(q.get('q') || '').trim().toLowerCase(), dg = t.replace(/\D/g, '');
+      const l = d.rows.filter(r => dg.length >= 4 ? r.phone.includes(dg.slice(-10)) : t.length >= 2 && (r.name || '').toLowerCase().includes(t));
+      return l.sort((a, b) => a.start_h - b.start_h).slice(0, 40).map(r => ({ ...adm(r), hall: hallName(r.hall_id) })); }
+    if (path === 'admin/report') { const a = stamp(dayNoOf(q.get('from')), 0), z = stamp(dayNoOf(q.get('to')), HOURS), rows = d.rows.filter(r => r.start_h >= a && r.start_h < z);
+      const conf = rows.filter(r => r.status === 'confirmed'), ok = conf.filter(r => r.visit !== 'noshow'), sum = l => l.reduce((x, r) => x + r.total, 0), hrs = l => l.reduce((x, r) => x + r.end_h - r.start_h, 0);
+      const days = Math.round((z - a) / 24);
+      return { from: q.get('from'), to: q.get('to'), days, count: ok.length, hours: hrs(ok), sum: sum(ok), prepaid: conf.reduce((x, r) => x + (r.prepaid || 0), 0), noshow: conf.length - ok.length, noshowSum: sum(conf) - sum(ok),
+        site: ok.filter(r => r.source === 'site').length, phone: ok.filter(r => r.source === 'phone').length, requests: rows.filter(r => r.source === 'site').length, rejected: rows.filter(r => r.status === 'rejected').length, cancelled: rows.filter(r => r.status === 'cancelled').length,
+        halls: cfg.halls.map(h => { const l = ok.filter(r => r.hall_id === h.id); return { name: h.name, count: l.length, hours: hrs(l), sum: sum(l), load: Math.round(hrs(l) / (days * HOURS) * 100) }; }) }; }
     throw new E(404, 'not_found', 'Не найдено');
   }
 

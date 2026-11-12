@@ -237,10 +237,23 @@
   }
   const LABEL = { request: 'ждёт ответа', offered: 'предлагаем другое время', confirmed: 'подтверждено', rejected: 'отклонено', cancelled: 'отменено' };
   function drawMine() {
-    $('mine').innerHTML = st.mine.slice().reverse().map(q => { const x = hall(q.hall_id);
+    $('mine').innerHTML = (st.mine.length ? '<h3 class="mineh">Ваши брони</h3>' : '') + st.mine.slice().reverse().map(q => { const x = hall(q.hall_id);
       return `<div class="m ${q.status}"><div class="mh"><b>${E(x ? x.name : 'Зал')}, ${E(dayName(q.date))}, ${span(q.start, q.hours)}</b><span>${LABEL[q.status]}</span></div>
       ${q.status === 'offered' ? `<div class="row"><button type="button" class="btn" data-acc="${E(q.token)}">Согласиться</button><button type="button" class="btn g" data-dec="${E(q.token)}">Отказаться</button></div>` : ''}
+      ${q.status === 'request' ? '<p class="mnote">Администратор ответит здесь, обычно в течение 15 минут. Страницу можно закрыть: заявка сохранится в этом браузере.</p>' : ''}
+      ${q.status === 'confirmed' ? `<p class="mnote">Ждём вас! Если планы изменятся, позвоните: <a href="${E(C.phoneHref)}">${E(C.phone)}</a></p>
+        <div class="mact"><button type="button" class="mb2" data-ics="${E(q.token)}">В календарь</button>${C.mapUrl ? `<a class="mb2" href="${E(C.mapUrl)}" target="_blank" rel="noopener" data-hit="click:map">Как добраться</a>` : ''}</div>` : ''}
+      ${C.tgBot && ['request', 'offered', 'confirmed'].includes(q.status) ? `<a class="tgb" href="https://t.me/${E(C.tgBot)}?start=${E(q.token)}" target="_blank" rel="noopener"><b>${q.status === 'confirmed' ? 'Напомнить в Telegram' : 'Получить ответ в Telegram'}</b><span>${q.status === 'confirmed' ? 'пришлём напоминание за 3 часа до визита' : 'ответ администратора и напоминание придут в чат'}</span></a>` : ''}
       ${q.status === 'request' ? `<button type="button" class="lnk" data-dec="${E(q.token)}">Отменить заявку</button>` : ''}</div>`; }).join('');
+  }
+  // файл события для календаря телефона: время Перми переводим в UTC
+  function icsOf(q) {
+    const x = hall(q.hall_id), [y, m, d] = q.date.split('-').map(Number);
+    const at = k => new Date(Date.UTC(y, m - 1, d, C.from + q.start + k - C.tzOffset)).toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+    const esc = s => String(s).replace(/[\\,;]/g, c => '\\' + c);
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//chp-booking//RU', 'BEGIN:VEVENT', `UID:${q.token}@chp`, `DTSTAMP:${at(0)}`, `DTSTART:${at(0)}`, `DTEND:${at(q.hours)}`,
+      `SUMMARY:${esc(`${C.name === C.name.toUpperCase() ? C.name.charAt(0) + C.name.slice(1).toLowerCase() : C.name}: зал «${x ? x.name : ''}»`)}`, `LOCATION:${esc(C.address || '')}`, `DESCRIPTION:${esc(`Телефон: ${C.phone}`)}`,
+      'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:Бронь', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
   }
   async function loadDay() {
     day = await api(`/day?date=${st.date}`); dayCache[st.date] = { d: day, t: Date.now() };
@@ -302,8 +315,9 @@
       const r = await api('/requests', { hall: hall(s.id).slug, date: st.date, start: s.a, hours: s.b - s.a + 1, name: $('fName').value, phone: $('fTel').value, guests: parseInt($('fGu').value, 10), comment: [st.occ && st.occ !== 'Другое' ? st.occ : '', $('fCom').value.trim()].filter(Boolean).join('. '), consent: true, website: $('fWeb').value });
       store.set([...store.get(), r.token]); prefs.set({ name: $('fName').value.trim(), tel: $('fTel').value });
       st.mine.push(r); st.sel = null; form(false); drawMine(); hit('book:sent');
-      toast('Заявка отправлена', 'Администратор подтвердит бронь', '');
-      $('book').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+      toast('Заявка отправлена', C.tgBot ? 'Нажмите «Получить ответ в Telegram», чтобы не пропустить ответ' : 'Ответ появится здесь, в «Ваших бронях»', '');
+      $('mine').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+      const card = $('mine').querySelector('.m'); if (card) { card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash'); }
       await Promise.all([loadDay(), loadWall()]);
     } catch (e) {
       if (e.code === 'slot_taken' || e.code === 'past') { st.sel = null; form(false); toast('Это время только что заняли', 'Выберите другое', 'alt'); await loadDay(); }
@@ -338,6 +352,9 @@
     const hk = t.closest('[data-hit]'); if (hk) hit(hk.dataset.hit);
     if (t.closest('#openForm')) { openForm(); return; }
     if (t.closest('#closeForm') || t.closest('#dim')) { form(false); cbForm(false); return; }
+    const ics = t.closest('[data-ics]');
+    if (ics) { const q = st.mine.find(m => m.token === ics.dataset.ics); if (!q) return;
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([icsOf(q)], { type: 'text/calendar' })); a.download = 'bron.ics'; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); return; }
     const acc = t.closest('[data-acc]'), dec = t.closest('[data-dec]');
     if (acc || dec) {
       const token = (acc || dec).dataset[acc ? 'acc' : 'dec'];
