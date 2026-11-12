@@ -2,7 +2,7 @@
 // Подключается только в сборке предпросмотра. Брони вымышленные, настоящих данных здесь нет.
 (() => {
   const FROM = 12, HOURS = 18, TZ = 5, H = 3600000;
-  const STORE = 'booking_preview_v3', KEY_D = 'booking_preview_d';
+  const STORE = 'booking_preview_v4', KEY_D = 'booking_preview_d';
   const BASE = 'https://mlsmybtspqqpsvbukbcj.supabase.co/storage/v1/object/public/kp-media/';
   const realFetch = window.fetch.bind(window);
   const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -48,7 +48,7 @@
         if (r() < (FROM + i >= 18 ? .4 : .14)) {
           const n = 2 + Math.floor(r() * 3);
           if (i + n <= HOURS) d.rows.push({ id: ++d.seq, token: 'demo' + d.seq + 'xxxxxxxx', hall_id: h.id, start_h: stamp(curDay() + day, i), end_h: stamp(curDay() + day, i) + n, status: 'confirmed',
-            source: r() < .25 ? 'phone' : 'site', ...(k => ({ name: names[k], phone: '+79000000' + String(10 + k * 3 + Math.floor(r() * 3)) }))(Math.floor(r() * names.length)), guests: 2 + Math.floor(r() * 6), comment: '', total: h.price * n, created_at: Date.now() });
+            source: r() < .25 ? 'phone' : 'site', ...(k => ({ name: names[k], phone: '+790000000' + String(10 + k * 3 + Math.floor(r() * 3)) }))(Math.floor(r() * names.length)), guests: 2 + Math.floor(r() * 6), comment: '', total: h.price * n, created_at: Date.now() });
           i += n + 1;
         } else i++;
       }
