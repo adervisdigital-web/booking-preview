@@ -492,6 +492,12 @@
       await loadMine().catch(() => {}); await loadDay().catch(() => {}); await loadWall().catch(() => {});
     }
   });
+  // 19.11 мобильное меню (на ширине ≤1100 px верхнее меню скрыто)
+  const mnav = $('mnav'), burger = $('burger');
+  const menuOpen = on => { if (!mnav) return; mnav.hidden = !on; burger.setAttribute('aria-expanded', on); document.body.classList.toggle('menuopen', on);
+    const tel = $('topTel'), mt = $('mTel'); if (on && tel && mt) { mt.href = tel.href; mt.textContent = tel.textContent; mt.hidden = !tel.textContent; } };
+  if (burger) { burger.addEventListener('click', () => menuOpen(mnav.hidden)); mnav.addEventListener('click', ev => { if (ev.target.closest('a') || ev.target === mnav) menuOpen(false); }); }
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && mnav && !mnav.hidden) menuOpen(false); });
   document.addEventListener('keydown', ev => { if ($('hallDlg').open && st.hd && st.hd.items.length > 1 && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) { ev.preventDefault(); hdGo((st.hd.i + (ev.key === 'ArrowRight' ? 1 : -1) + st.hd.items.length) % st.hd.items.length); return; } if (ev.key === 'Escape') { form(false); cbForm(false); rvForm(false); calOpen(false); } });
   $('rvSheet').addEventListener('submit', sendReview);
   $('sheet').addEventListener('submit', send);

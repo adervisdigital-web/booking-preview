@@ -616,3 +616,31 @@ h1{grid-column:2;align-self:start;font-size:clamp(54px,9.6vw,168px);line-height:
 .pent.flash{animation:mflash 1.2s ease-out}
 @media (max-width:600px){ .ppin{width:32px;height:32px;margin:-16px 0 0 -16px} .ppin b{font-size:15px} .ppop{width:160px} }
 .pbld .ppop img{position:static;inset:auto;width:100%;height:auto;aspect-ratio:4/3;border-radius:0}
+
+/* 19.11 Мобильная версия (Артём: «обновить мобильную версию»): меню-бургер, кнопки не меньше 44 px, подписи не мельче 12 px */
+.burger,.mnav{display:none}
+@media (max-width:1100px){
+  .burger{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;padding:0 11px;margin-left:4px;border:1px solid rgba(255,255,255,.16);border-radius:3px;background:transparent;flex:none}
+  .burger i{display:block;height:2px;background:var(--paper);border-radius:1px;transition:transform .2s,opacity .2s}
+  body.menuopen .burger i:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  body.menuopen .burger i:nth-child(2){opacity:0}
+  body.menuopen .burger i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .mnav:not([hidden]){display:flex;flex-direction:column;position:fixed;inset:0;z-index:24;padding:calc(76px + 18px) var(--page) 28px;background:rgba(8,8,10,.97);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow-y:auto;animation:mnin .22s ease-out}
+  .mnav nav{display:flex;flex-direction:column}
+  .mnav nav a{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:30px;line-height:1;letter-spacing:.01em;text-decoration:none;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08);color:var(--paper)}
+  .mnav nav a:active{color:var(--neon-r)}
+  .mnav .mtel{margin-top:22px;font-family:var(--disp);font-weight:700;font-size:24px;text-decoration:none;color:var(--paper)}
+  .mnav .mbook{margin-top:18px;display:flex;align-items:center;justify-content:center;min-height:54px;background:var(--neon-r);color:#fff;text-decoration:none;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:17px;border-radius:3px}
+  body.menuopen{overflow:hidden}
+  body.menuopen .bar{display:none!important}
+}
+@keyframes mnin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@media (max-width:760px){
+  #days .day i{font-size:11.5px;letter-spacing:.04em}
+  .dparr,.cside .dparr{width:44px;height:44px}
+  .dpcal,.cside .dpcal{height:44px}
+  .pkcells .sl,.picker .pkcells .sl{height:46px;font-size:13.5px}
+  .hst i{font-size:12.5px}
+  .durrow button{min-width:44px;min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){.mnav:not([hidden]){animation:none}}
