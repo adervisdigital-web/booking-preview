@@ -86,3 +86,10 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
   .big{font-size:clamp(18px,5.6vw,26px)}
   .wallhead h2{font-size:17px}
 }
+/* заголовки внутри блоков с собственными размерами в theme.css */
+.book .h{font-size:clamp(26px,3.3vw,50px)}
+.cinfo h3{font-family:var(--disp);font-weight:900;letter-spacing:-.02em;font-size:clamp(26px,3vw,48px);line-height:.98}
+@media (max-width:760px){
+  .book .h{font-size:clamp(22px,7vw,30px)}
+  .cinfo h3{font-size:clamp(22px,7vw,30px)}
+}
