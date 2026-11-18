@@ -1,0 +1,75 @@
+/* 19.11 Фирменная типографика (Артём: «что с текстом? проработай типографику и дизайн», «и шрифт у них такой фирменный» — обложка ВК и карточки залов).
+   Заголовки — широкий гротеск Unbounded (как «БРОНЬ ЗАЛОВ» на обложке), текст и мелкие подписи — Montserrat (как «караоке · игры PS 5 · вкусная еда»).
+   Слой поверх theme.css: логика и разметка не тронуты. Узкий Oswald больше не используется. */
+@font-face{font-family:'Montserrat';font-weight:400;font-display:swap;src:url(fonts/montserrat-400-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Montserrat';font-weight:400;font-display:swap;src:url(fonts/montserrat-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+20BD,U+2212}
+@font-face{font-family:'Montserrat';font-weight:500;font-display:swap;src:url(fonts/montserrat-500-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Montserrat';font-weight:500;font-display:swap;src:url(fonts/montserrat-500-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+20BD,U+2212}
+@font-face{font-family:'Montserrat';font-weight:600;font-display:swap;src:url(fonts/montserrat-600-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Montserrat';font-weight:600;font-display:swap;src:url(fonts/montserrat-600-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+20BD,U+2212}
+@font-face{font-family:'Unbounded';font-weight:500;font-display:swap;src:url(fonts/unbounded-500-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Unbounded';font-weight:500;font-display:swap;src:url(fonts/unbounded-500-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+20BD,U+2212}
+@font-face{font-family:'Unbounded';font-weight:900;font-display:swap;src:url(fonts/unbounded-900-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Unbounded';font-weight:900;font-display:swap;src:url(fonts/unbounded-900-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+20BD,U+2212}
+
+:root{--disp:'Unbounded','Arial Black',sans-serif;--text:'Montserrat',system-ui,-apple-system,'Segoe UI',sans-serif}
+body.site{font-family:var(--text);font-weight:400}
+body.site :where(input,button,textarea,select,dd,dt,p,li){font-family:inherit}
+.stepl .fitsum{font-family:var(--text)}
+
+/* ---------- крупное: Unbounded, без разрядки, размеры под широкий шрифт ---------- */
+h1,.h,.wallhead h2,.hltop h3,.hcn,.pkt h3,.pkempty b,.pkprice,.facts dt,.big,.flogo,.sh h2,.ocb b,.stepper output,.logo,
+.win .wn,#days .day b,.day b,.hst b,.hdrc dd{font-family:var(--disp);font-weight:700;letter-spacing:-.01em}
+h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spacing:-.02em}
+.h{font-size:clamp(26px,3.7vw,58px);line-height:1.04;letter-spacing:-.015em}
+.wallhead h2{font-size:clamp(18px,1.7vw,26px)}
+.hltop h3{font-size:clamp(20px,1.9vw,30px);line-height:1.05}
+.hcn{font-size:15px;line-height:1.15}
+.pkt h3{font-size:20px;line-height:1.1}
+.pkprice{font-size:26px}
+.big{font-size:clamp(20px,2.5vw,38px);line-height:1.08}
+.flogo{font-size:15px}
+.sh h2{font-size:18px}
+.stepper output{font-size:22px}
+#days .day b{font-size:clamp(20px,1.9vw,28px);line-height:1}
+.hst b{font-size:12.5px;line-height:1.2}
+.win .wn{font-size:clamp(13px,1.15vw,18px)}
+.hdrc dd{font-size:19px}
+.logo{font-size:15px}
+
+/* ---------- мелкие подписи и навигация: Montserrat 600, капс с умеренной разрядкой ---------- */
+.topbar nav a,.kicker,.pl,.cap,.badge,.chip,.hccap,.hcph .rec,.hdcount,.hdkick,.hdl,.dpcal,#days .day i,.pkl,.win .wt,.fadmin,.block .h::before{font-family:var(--text);font-weight:600}
+.topbar nav a{font-size:13px;letter-spacing:.06em}
+.kicker{font-size:clamp(12px,.95vw,14px);letter-spacing:.2em}
+.pl{font-size:12.5px;letter-spacing:.12em}
+.block .h::before{font-size:13px;letter-spacing:.2em}
+.cap{font-size:12.5px;letter-spacing:.06em}
+.badge{font-size:12px;letter-spacing:.06em}
+.dpcal{font-size:12.5px;letter-spacing:.06em}
+#days .day i{font-size:11.5px;letter-spacing:.04em}
+.hdkick,.hdl{letter-spacing:.12em}
+.toptel{font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:0}
+
+/* кнопки: Unbounded 700, капс, плотнее */
+.topbook,.cta,.cta2,.pick,.pkgo,.take,.btn,.bar .btn,.sheet .btn,.hdgo,.mbook{font-family:var(--disp);font-weight:700;letter-spacing:.03em}
+.topbook{font-size:12.5px}
+
+/* ---------- цифры под первым экраном ---------- */
+.facts{gap:0;border-top:1px solid var(--rule)}
+.facts div{position:relative;padding:22px 22px 4px 0;margin-right:22px}
+.facts div::before{content:'';position:absolute;left:0;top:-1px;width:36px;height:2px;background:var(--neon-r);box-shadow:0 0 12px var(--red-glow)}
+.facts div:nth-child(even)::before{background:var(--neon-b);box-shadow:0 0 12px var(--blue-glow)}
+.facts dt{font-size:clamp(22px,2.15vw,36px);line-height:1;white-space:nowrap}
+.facts dd{margin-top:10px;font-family:var(--text);font-weight:500;font-size:15px;line-height:1.35;text-transform:none;letter-spacing:0;color:rgba(244,242,238,.68);max-width:24ch}
+.facts dd::first-letter{text-transform:uppercase}
+@media (max-width:760px){
+  .facts div{padding:16px 12px 14px 0;margin-right:0}
+  .facts dt{font-size:clamp(17px,5vw,22px)}
+  .facts dd{font-size:13.5px;margin-top:6px}
+  .mnav nav a{font-size:22px;letter-spacing:-.01em}
+  .mnav .mtel{font-size:20px}
+  .mnav .mbook{font-size:14px}
+}
+
+/* текст абзацев: чуть свободнее для Montserrat */
+.herosub p{line-height:1.5}
