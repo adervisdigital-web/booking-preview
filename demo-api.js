@@ -32,7 +32,10 @@
         rates: x.rates || { day: x.p, night: x.p, weekend: x.p } }));
     const s = c.site || {};
     cfg = { name: c.name || 'Бронь залов', sub: c.sub || 'Выберите зал и время', lead: s.lead || '', tags: c.tags || [], hoursText: s.hoursText || '', ownFood: s.ownFood || '', address: s.address || '', mapUrl: s.mapUrl || '',
-      phone: s.phone || '', phoneHref: s.phoneHref || '', vk: s.vk || '', from: FROM, hours: HOURS, closeLabel: s.closeLabel || 'до закрытия', holidays: s.holidays || [], horizonDays: 90, programs: s.programs || [], operator: {}, halls, facts: s.facts || [], faq: s.faq || [], occasions: s.occasions || [], tzOffset: s.tzOffset ?? 5, logo: s.logo || '', logoBig: s.logoBig || '' };
+      phone: s.phone || '', phoneHref: s.phoneHref || '', vk: s.vk || '', from: FROM, hours: HOURS, closeLabel: s.closeLabel || 'до закрытия', holidays: s.holidays || [], horizonDays: 90, programs: s.programs || [], operator: {}, halls, facts: s.facts || [], faq: s.faq || [], occasions: s.occasions || [], tzOffset: s.tzOffset ?? 5, logo: s.logo || '', logoBig: s.logoBig || '',
+      // 19.11: меню кухни, рейтинги, фото здания и входов, карта — как на настоящем сайте
+      menu: s.menu || [], menuNote: s.menuNote || '', ratings: s.ratings || [], yandexOrgId: s.yandexOrgId || '', geo: s.geo || null, buildingPhoto: s.buildingPhoto || '', entrances: s.entrances || [], schemePhoto: s.schemePhoto || '', instagram: s.instagram || '' };
+    cfg.reviews = c.reviews || { count: 0, avg: 0, items: [] };
     return cfg;
   }
 
@@ -77,7 +80,9 @@
 
   async function route(path, q, method, body) {
     await loadCfg(); const d = db(); let m;
-    if (path === 'public/config') return { ...cfg, today: dateOf(curDay()) };
+    if (path === 'public/config') { const { reviews, ...pub } = cfg; return { ...pub, today: dateOf(curDay()) }; }
+    if (path === 'public/reviews' && method === 'GET') { const own = (d.rv || []).filter(r => r.status === 'published'); const R = cfg.reviews; return { count: R.count + own.length, avg: R.avg, items: [...own, ...R.items] }; }
+    if (path === 'public/reviews' && method === 'POST') { d.rv = d.rv || []; d.rv.unshift({ name: String(body.name || 'Гость').slice(0, 40), rating: Math.max(1, Math.min(5, +body.rating || 5)), text: String(body.text || '').slice(0, 800), status: 'pending', created_at: Date.now(), source: '' }); save(d); return { ok: true }; }
     if (path === 'public/day') {
       const date = q.get('date'), a = stamp(dayNoOf(date), 0), z = a + HOURS, busy = Object.fromEntries(cfg.halls.map(h => [h.id, []]));
       d.rows.filter(b => ACTIVE.includes(b.status) && b.start_h < z && b.end_h > a).forEach(b => busy[b.hall_id].push([Math.max(b.start_h, a) - a, Math.min(b.end_h, z) - Math.max(b.start_h, a)]));
