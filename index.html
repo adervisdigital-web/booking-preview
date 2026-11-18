@@ -3,19 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0812">
+<meta name="theme-color" content="#070708">
 <title>Бронь залов</title>
 <meta name="description" content="Свободные часы и заявка на бронь">
 <meta property="og:title" content="Бронь залов">
 <meta property="og:description" content="Свободные часы и заявка на бронь">
 <meta property="og:type" content="website">
+
+
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="preload" href="fonts/dela-gothic-one-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+<link rel="preload" href="fonts/oswald-700-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <script src="demo-api.js"></script>
-<link rel="stylesheet" href="app.css">
-<link rel="stylesheet" href="site.css">
-<script src="pricing.js"></script>
-<script src="guest.js" defer></script>
+<link rel="stylesheet" href="app.css?v=43">
+<link rel="stylesheet" href="site.css?v=43">
+<link rel="stylesheet" href="theme.css?v=43">
+<script src="pricing.js?v=43" defer></script>
+<script src="guest.js?v=43" defer></script>
 </head>
 <body class="site">
   <div class="toast" id="toast" role="status"><div class="ic" id="tIc">✓</div><div><b id="tT"></b><span id="tS"></span></div></div>
@@ -23,7 +27,7 @@
   <header class="topbar">
     <a class="logo" href="#top" aria-label=", наверх"><img src="brand/logo-96.png" alt="" width="44" height="41"></a>
     <span class="status" id="status"></span>
-    <nav aria-label="Разделы"><a href="#book">Бронь</a><a href="#halls">Залы</a><a href="#programs">Программы</a><a href="#faq">Вопросы</a><a href="#contacts">Контакты</a></nav>
+    <nav aria-label="Разделы"><a href="#book">Бронь</a><a href="#halls">Залы</a><a href="#menu">Меню</a><a href="#programs">Программы</a><a href="#faq">Вопросы</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a></nav>
     <a class="toptel" id="topTel" data-hit="click:tel"></a>
     <a class="topbook" href="#book">Забронировать</a>
   </header>
@@ -32,8 +36,10 @@
     <section class="hero" id="top">
       <div class="herotext">
         <div class="herobg" id="heroBg" aria-hidden="true"></div>
+        <img class="herologo" src="brand/logo-320.png" alt="" width="230" height="213">
+        <p class="kicker">Караоке · кино · PlayStation · VR</p>
         <h1 id="name"></h1>
-        <div class="herosub"><p id="lead"></p><a class="cta" href="#book">Забронировать зал</a></div>
+        <div class="herosub"><p id="lead"></p><a class="cta" href="#book">Забронировать зал</a><a class="yrate" id="yRate" target="_blank" rel="noopener" data-hit="click:reviews" hidden></a></div>
         <dl class="facts" id="facts"></dl>
       </div>
       <div class="wallhead"><h2 id="wallTitle">Свободные залы</h2><p id="wallHint">Горят залы, которые ещё можно забронировать</p></div>
@@ -42,16 +48,22 @@
 
     <section class="block book" id="book" aria-labelledby="bookT">
       <h2 class="h" id="bookT">Забронировать зал</h2>
-      <div class="plan" id="plan" role="group" aria-label="Подбор зала">
+      <div class="mine" id="mine"></div>
+      <div class="console">
+        <div class="cstage" id="cstage" aria-live="polite"></div>
+        <div class="cstrip"><p class="cstl"><span class="stepl"><i>2</i>Зал</span><span class="fitsum" id="fitSum" aria-live="polite"></span></p><div class="hstrip" id="slots"></div></div>
+        <div class="cside">
+          <div class="cstep"><p class="stepl"><i>1</i>Дата и гости</p>
+            <div class="dpick" id="dpick"><div class="dphead"><b class="dpmon" id="dpMon"></b><span class="dpsel" id="dpSel"></span><div class="dpnav"><button type="button" class="dparr" data-dpage="-1" aria-label="Предыдущая неделя">‹</button><button type="button" class="dparr" data-dpage="1" aria-label="Следующая неделя">›</button><button type="button" class="dpcal" id="calBtn" aria-expanded="false" aria-controls="calPop">Календарь</button></div></div><nav class="days" id="days" aria-label="Выбор дня"></nav><div class="caldim" id="calDim"></div><div class="calpop" id="calPop" role="dialog" aria-label="Календарь" hidden></div></div>
+            <div class="plan" id="plan" role="group" aria-label="Гости и длительность">
         <div class="pg"><span class="pl">Сколько вас</span>
           <div class="stepper"><button type="button" data-g="-1" aria-label="Меньше гостей">−</button><output id="pGu" aria-live="polite">4</output><button type="button" data-g="1" aria-label="Больше гостей">+</button></div></div>
-        <div class="pg"><span class="pl">На сколько часов</span><div class="chips" id="pDur"></div><small class="pgnote" id="durNote"></small></div>
+
+            </div></div>
+          <div class="cstep"><p class="stepl"><i>3</i>Время</p><div class="picker" id="picker" aria-live="polite"></div></div>
+        </div>
       </div>
-      <div class="daysbar"><div class="dayrow"><nav class="days" id="days" aria-label="Выбор дня"></nav><label class="daycal" id="dayCal"><span aria-hidden="true">📅</span><b>Другая дата</b><input type="date" id="pDate" aria-label="Выбрать другую дату"></label></div><div class="hint"><em>свободно</em><em class="n">ночь, свой тариф</em><em class="b">занято</em><em class="s">ваш выбор</em></div></div>
-      <div class="fitsum" id="fitSum" aria-live="polite"></div>
-      <div class="mine" id="mine"></div>
-      <div class="bookwrap"><div class="hcards" id="slots"></div><aside class="picker" id="picker" aria-live="polite"></aside></div>
-      <p class="booknote">Выберите день и зал, затем час начала: выделим сразу нужное число часов. Соседние часы добавляют или убирают по одному. Заявку подтвердит администратор, статус появится здесь.</p>
+      <p class="booknote">Заявку подтвердит администратор, обычно за 15 минут. Статус появится на этой странице и в Telegram.</p>
     </section>
 
     <section class="block" id="occasions" aria-labelledby="occT" hidden data-off>
@@ -64,6 +76,14 @@
       <div class="hlist" id="hallList"></div>
     </section>
 
+
+    <section class="block" id="menu" aria-labelledby="menuT" hidden>
+      <h2 class="h" id="menuT">Меню кухни</h2>
+      <p class="menunote" id="menuNote"></p>
+      <div class="mtabs" id="menuTabs" role="tablist" aria-label="Разделы меню"></div>
+      <div class="mlist" id="menuList" role="tabpanel"></div>
+      <p class="menuhint">Заказать можно у администратора на месте или заранее, в пожеланиях к заявке.</p>
+    </section>
 
     <div class="duo">
       <section class="block" id="programs" aria-labelledby="progT">
@@ -87,24 +107,27 @@
           <button type="button" class="cta2" id="openCb">Заказать звонок</button></div>
       </div>
       <p class="meta-note" id="igNote" hidden>Instagram принадлежит компании Meta, деятельность которой признана экстремистской и запрещена в России.</p>
-      <div class="ymap" id="ymap" hidden></div>
+      <div class="findgrid"><div class="ymap" id="ymap" hidden></div><div class="place" id="place" hidden></div></div>
     </section>
 
-    <section class="block" id="reviews" aria-labelledby="revT" hidden>
+    <section class="block" id="reviews" aria-labelledby="revT">
       <h2 class="h" id="revT">Отзывы гостей</h2>
-      <div class="yrev" id="yrev"></div>
+      <div class="rvtop"><div class="rvsum" id="rvSum"></div><button type="button" class="cta2 rvbtn" data-review>Оставить отзыв</button></div>
+      <div class="rvlist" id="rvList"></div>
+      <button type="button" class="rvmore" id="rvMore" hidden>Показать ещё</button>
+      <p class="rvsrc" id="rvSrc" hidden>Общий рейтинг — по всем оценкам гостей на Яндекс Картах, во ВКонтакте и на этом сайте.</p>
+      <div class="yrev" id="yrev" hidden></div>
     </section>
   </main>
 
   <footer class="foot">
     <div class="fcol"><img class="flogoimg" src="brand/logo-320.png" alt="" width="132" height="122" loading="lazy"><b class="flogo" id="ftName"></b><span id="ftAddr"></span><span id="ftHours"></span></div>
     <div class="fcol"><a id="ftTel" data-hit="click:tel"></a><div class="flinks" id="ftLinks"></div></div>
-    <div class="fcol flegal"><a href="privacy.html">Политика обработки персональных данных</a><a href="consent.html">Согласие на обработку данных</a></div>
+    <div class="fcol flegal"><a class="fadmin" href="admin/">Вход для администратора</a><a href="privacy.html">Политика обработки персональных данных</a><a href="consent.html">Согласие на обработку данных</a></div>
   </footer>
   <div class="pad"></div>
 
-  <div class="bar" id="bar"><button type="button" class="barx" id="barX" aria-label="Снять выбор">×</button><div class="w"><b id="barT"></b><span id="barS"></span></div><div class="adj"><button type="button" data-adj="-1" aria-label="На час меньше">−1 ч</button><button type="button" data-adj="1" aria-label="На час больше">+1 ч</button></div>
-    <button type="button" class="btn" id="openForm">Оставить заявку</button></div>
+  <div class="bar" id="bar"><button type="button" class="barx" id="barX" aria-label="Снять выбор">×</button><div class="w"><b id="barT"></b><span id="barS"></span></div><button type="button" class="btn" id="openForm">Оставить заявку</button></div>
 
   <div class="dim" id="dim"></div>
   <form class="sheet" id="sheet" autocomplete="on" novalidate>
@@ -131,6 +154,19 @@
     <label class="consent"><input type="checkbox" id="cbOk"><span>Даю <a href="consent.html" target="_blank">согласие на обработку персональных данных</a></span></label>
     <p class="err" id="cbErr" role="alert"></p>
     <button type="submit" class="btn wide" id="cbSend">Заказать звонок</button>
+  </form>
+
+  <form class="sheet" id="rvSheet" autocomplete="on" novalidate>
+    <div class="sh"><h2>Ваш отзыв</h2><button type="button" class="x" data-close-rv aria-label="Закрыть">×</button></div>
+    <div class="sum">Расскажите, как прошёл вечер. Отзыв появится на сайте после проверки администратором.</div>
+    <div class="fld rvstars"><i>Оценка</i><div class="stars" id="rvStars" role="radiogroup" aria-label="Оценка"></div></div>
+    <label class="fld"><i>Имя</i><input id="rvName" autocomplete="given-name" maxlength="40" placeholder="Как подписать отзыв" required></label>
+    <label class="fld"><i>Зал <em>необязательно</em></i><select id="rvHall"></select></label>
+    <label class="fld"><i>Отзыв</i><textarea id="rvText" maxlength="800" rows="4" placeholder="Что понравилось, что улучшить"></textarea></label>
+    <label class="hp" aria-hidden="true">Сайт<input id="rvWeb" tabindex="-1" autocomplete="off"></label>
+    <label class="consent"><input type="checkbox" id="rvOk"><span>Согласен на публикацию отзыва с моим именем</span></label>
+    <p class="err" id="rvErr" role="alert"></p>
+    <button type="submit" class="btn wide" id="rvSend">Отправить отзыв</button>
   </form>
 
   <dialog class="hdlg" id="hallDlg" aria-labelledby="hdT"><div id="hdBody"></div></dialog>

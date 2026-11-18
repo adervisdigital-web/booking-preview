@@ -141,8 +141,20 @@
       ${c.done_at ? `<div class="st">Перезвонили · ${E(c.done_by)}</div>` : `<div class="a"><button type="button" class="yes" data-cb="${c.id}">Перезвонили</button></div>`}</div>`).join('')
       : '<p class="empty">Просьб перезвонить нет.</p>';
   }
+  // 17.11 отзывы гостей: новые сверху, «Опубликовать» / «Скрыть» / «Ответить»
+  let RVS = [];
+  function drawRv(list) {
+    RVS = list; const fresh = list.filter(r => r.status === 'new');
+    $('sRv').textContent = fresh.length;
+    const st = r => r.status === 'published' ? `<div class="st">На сайте · ${E(r.done_by)}</div>` : r.status === 'hidden' ? `<div class="st">Скрыт · ${E(r.done_by)}</div>` : '';
+    $('rvs').innerHTML = list.length ? list.slice(0, 30).map(r => `<div class="req rvq${r.status === 'new' ? '' : ' ok'}"><div class="t">${new Date(r.created_at).toLocaleString('ru', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${r.hall_name ? ' · ' + E(r.hall_name) : ''}</div>
+      <b>${E(r.name)} <span class="rvst">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></b><p>«${E(r.text)}»</p>${r.reply ? `<p class="rvrep">Ответ: ${E(r.reply)}</p>` : ''}
+      ${st(r)}<div class="a">${r.status !== 'published' ? `<button type="button" class="yes" data-rvp="${r.id}">Опубликовать</button>` : ''}${r.status !== 'hidden' ? `<button type="button" class="no" data-rvh="${r.id}">Скрыть</button>` : ''}<button type="button" class="no" data-rvr="${r.id}">${r.reply ? 'Изменить ответ' : 'Ответить'}</button></div></div>`).join('')
+      : '<p class="empty">Отзывов пока нет. Гости оставляют их на сайте, сначала они попадают сюда.</p>';
+  }
   async function load(force) {
     api('/callbacks').then(drawCb).catch(() => {});
+    api('/reviews').then(drawRv).catch(() => {});
     const d = await api(`/day?date=${S.date}`), key = JSON.stringify(d);
     S.day = d;
     if (force || key !== S.last) { S.last = key; draw(); }
@@ -342,6 +354,9 @@
       catch (e) { if (e instanceof Unauth) return showLogin(); $('mErr').textContent = e.message; }
       return;
     }
+    if ((el = t.closest('[data-rvp],[data-rvh]'))) { const id = el.dataset.rvp || el.dataset.rvh; try { await api(`/reviews/${id}/${el.dataset.rvp ? 'publish' : 'hide'}`, {}); drawRv(await api('/reviews')); toast(el.dataset.rvp ? 'Отзыв на сайте' : 'Отзыв скрыт'); } catch (e) { onErr(e); } return; }
+    if ((el = t.closest('[data-rvr]'))) { const r = RVS.find(x => x.id === +el.dataset.rvr); openDlg(`<h3>Ответ на отзыв</h3><p class="muted">${E(r.name)}: «${E(r.text)}»</p><label class="fld"><i>Ответ от заведения (виден на сайте)</i><textarea id="rvReply" rows="4" maxlength="600">${E(r.reply || '')}</textarea></label><div class="row"><button type="button" class="btn" data-rvsave="${r.id}">Сохранить</button><button type="button" class="btn g" data-close>Отмена</button></div>`); return; }
+    if ((el = t.closest('[data-rvsave]'))) { try { await api(`/reviews/${el.dataset.rvsave}/reply`, { reply: $('rvReply').value }); closeDlg(); drawRv(await api('/reviews')); toast('Ответ сохранён'); } catch (e) { onErr(e); } return; }
     if ((el = t.closest('[data-cb]'))) { try { await api(`/callbacks/${el.dataset.cb}/done`, {}); drawCb(await api('/callbacks')); toast('Отмечено'); } catch (e) { onErr(e); } return; }
     if ((el = t.closest('[data-rep]'))) return reportDlg(el.dataset.rep);
     if (t.closest('#repBtn')) return reportDlg(S.date.slice(0, 7));
@@ -397,7 +412,7 @@
   }
   $('login').addEventListener('submit', async ev => {
     ev.preventDefault(); $('lErr').textContent = '';
-    try { const r = await api('/login', { login: $('lLogin').value.trim(), password: $('lPass').value }); $('lPass').value = ''; showApp(r.name); }
+    try { const r = await api('/login', { login: $('lLogin').value.trim().toLowerCase(), password: $('lPass').value }); $('lPass').value = ''; showApp(r.name); }
     catch (e) { $('lErr').textContent = e instanceof Unauth ? 'Неверный логин или пароль' : e.message; }
   });
 

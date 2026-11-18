@@ -16,9 +16,9 @@
 <body>
   <div class="toast" id="toast" role="status"><div class="ic" id="tIc">✓</div><div><b id="tT"></b><span id="tS"></span></div></div>
 
-  <form id="login" class="login" hidden>
+  <form id="login" class="login" novalidate hidden>
     <img class="loginlogo" src="../brand/logo-192.png" alt="" width="96" height="89"><h1 class="brand">БРОНЬ ЗАЛОВ</h1><p class="role">кабинет администратора</p>
-    <label class="fld"><i>Логин</i><input id="lLogin" autocomplete="username" required></label>
+    <label class="fld"><i>Почта</i><input id="lLogin" type="email" inputmode="email" autocomplete="username" placeholder="name@mail.ru" required></label>
     <label class="fld"><i>Пароль</i><input id="lPass" type="password" autocomplete="current-password" required></label>
     <p class="err" id="lErr" role="alert"></p>
     <button class="btn wide">Войти</button>
@@ -41,7 +41,8 @@
       <div class="tools"><button type="button" id="repBtn">Отчёт за месяц</button><button type="button" id="statsBtn">Статистика сайта</button><button type="button" id="csv">Выгрузить месяц в таблицу</button><button type="button" id="snd"></button><a href="help.html" target="_blank" rel="noopener">Памятка</a><button type="button" id="out">Выйти</button></div>
     </div>
     <aside class="side"><h2>Заявки <span id="sReq">0</span></h2><div id="reqs"></div>
-      <h2 class="h2b">Перезвонить <span id="sCb">0</span></h2><div id="cbs"></div></aside>
+      <h2 class="h2b">Перезвонить <span id="sCb">0</span></h2><div id="cbs"></div>
+      <h2 class="h2b">Отзывы <span id="sRv">0</span></h2><div id="rvs"></div></aside>
     <button type="button" class="fab" id="fab" aria-label="Новая бронь">+</button>
   </div>
 
