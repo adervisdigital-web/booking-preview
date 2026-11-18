@@ -420,6 +420,8 @@
     try { C = await api('/api/public/config'); }
     catch { document.body.innerHTML = '<p class="empty">Нет связи с сервером. Обновите страницу.</p>'; return; }
     $('aName').textContent = C.name;
+    // логотип: на сервере клиента лежит в brand/, в предпросмотре приходит адресом из данных; нет файла — картинку убираем (как на сайте гостя)
+    for (const [img, url] of [[document.querySelector('.alogo'), C.logo], [document.querySelector('.loginlogo'), C.logoBig || C.logo]]) { if (!img) continue; img.addEventListener('error', () => img.remove(), { once: true }); if (url) img.src = url; else if (img.complete && !img.naturalWidth) img.remove(); }
     try { showApp((await api('/me')).name); } catch { showLogin(); }
   })();
 })();
