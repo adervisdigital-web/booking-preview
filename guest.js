@@ -494,7 +494,7 @@
   });
   // 19.11 мобильное меню (на ширине ≤1100 px верхнее меню скрыто)
   const mnav = $('mnav'), burger = $('burger');
-  const menuOpen = on => { if (!mnav) return; mnav.hidden = !on; burger.setAttribute('aria-expanded', on); document.body.classList.toggle('menuopen', on);
+  const menuOpen = on => { if (!mnav) return; mnav.hidden = !on; burger.setAttribute('aria-expanded', on); document.body.classList.toggle('menuopen', on); if (on) { const tb = document.querySelector('.topbar'); mnav.style.paddingTop = Math.round((tb ? tb.getBoundingClientRect().bottom : 70) + 14) + 'px'; }
     const tel = $('topTel'), mt = $('mTel'); if (on && tel && mt) { mt.href = tel.href; mt.textContent = tel.textContent; mt.hidden = !tel.textContent; } };
   if (burger) { burger.addEventListener('click', () => menuOpen(mnav.hidden)); mnav.addEventListener('click', ev => { if (ev.target.closest('a') || ev.target === mnav) menuOpen(false); }); }
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && mnav && !mnav.hidden) menuOpen(false); });

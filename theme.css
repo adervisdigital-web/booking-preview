@@ -642,5 +642,7 @@ h1{grid-column:2;align-self:start;font-size:clamp(54px,9.6vw,168px);line-height:
   .pkcells .sl,.picker .pkcells .sl{height:46px;font-size:13.5px}
   .hst i{font-size:12.5px}
   .durrow button{min-width:44px;min-height:44px}
+  .carr,.hdnav{min-width:44px;min-height:44px}
+  #days .day i{letter-spacing:0}
 }
 @media (prefers-reduced-motion:reduce){.mnav:not([hidden]){animation:none}}
