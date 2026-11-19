@@ -111,3 +111,11 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
 @media (max-width:1440px){ .topbar .status{display:none} }
 /* подпись к «Свободно сегодня» — обычным текстом, не мелким капсом */
 .wallhead p{text-transform:none;letter-spacing:0;font-family:var(--text);font-weight:500;font-size:14.5px;color:rgba(244,242,238,.6)}
+
+/* 19.11 телефон: подсказка «листайте вбок» накладывалась на перфорацию заголовка «Залы»; подпись вместимости обрезалась */
+@media (max-width:760px){
+  #hallsT::after{background:none;height:auto;max-width:none;opacity:1;margin-top:10px;font-family:var(--text);font-size:13.5px;text-transform:none;letter-spacing:0}
+  .hltop{flex-wrap:wrap;align-items:center;row-gap:6px}
+  .hltop .cap{font-size:11.5px;padding:4px 8px}
+  .hlist{align-items:stretch}
+}
