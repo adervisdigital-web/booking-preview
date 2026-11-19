@@ -100,7 +100,7 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
 .htags li:nth-child(odd){border-color:rgba(227,35,47,.45)}
 .htags li:nth-child(even){border-color:rgba(47,92,255,.5)}
 .herotext{position:relative}
-.herotext::after{content:'';position:absolute;z-index:-1;pointer-events:none;left:10%;right:-5%;top:-10%;bottom:20%;
+.herotext::after{content:'';position:absolute;z-index:-1;pointer-events:none;left:10%;right:0;top:-10%;bottom:20%;
   background:radial-gradient(45% 60% at 30% 50%,rgba(227,35,47,.22),transparent 70%),radial-gradient(45% 60% at 75% 45%,rgba(47,92,255,.2),transparent 70%);filter:blur(10px)}
 @media (max-width:760px){
   .htags{grid-column:1;gap:8px;margin-top:12px}
