@@ -127,5 +127,5 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
   .hldots button{width:24px;height:24px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer}
   .hldots button::before{content:'';width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);transition:width .2s,background .2s}
   .hldots button.on::before{width:20px;border-radius:4px;background:var(--neon-r)}
-  #hallsT::after{display:none}
+  #hallsT::after{content:'';display:block;height:10px;margin-top:20px;max-width:180px;background:var(--perf) left/22px 10px repeat-x;opacity:.18}
 }
