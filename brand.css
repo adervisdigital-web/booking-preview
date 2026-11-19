@@ -157,3 +157,9 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
 .hdmedia.full .hdfull svg path{d:path("M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5")}
 .hdmedia.full .thumbs{flex:none}
 dialog.fullon .hdx{display:none}
+/* окно зала на компьютере: фото не растягивается на всю высоту текста, а держится в кадре при прокрутке */
+@media (min-width:761px){
+  .hdlg>div>.hdmedia{position:sticky;top:0;align-self:start;height:min(calc(100dvh - 24px),100%);max-height:calc(100dvh - 24px)}
+  .hdlg>div>.hdmedia.full{position:fixed;height:100dvh;max-height:none}
+}
+.hdstage>img.hdbg{filter:blur(30px) brightness(.7) saturate(1.3)}
