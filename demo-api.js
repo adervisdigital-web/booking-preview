@@ -2,7 +2,7 @@
 // Подключается только в сборке предпросмотра. Брони вымышленные, настоящих данных здесь нет.
 (() => {
   const FROM = 12, HOURS = 18, TZ = 5, H = 3600000;
-  const STORE = 'booking_preview_v4', KEY_D = 'booking_preview_d';
+  const STORE = 'booking_preview_v4', KEY_D = 'booking_preview_d'; const KEY_ADM = 'booking_preview_admin', ADMIN_HASH = '72375ce40cfda7502b8cf052e82437ef68efe7c53c5f746c4df451cda1d8c863';
   const BASE = 'https://mlsmybtspqqpsvbukbcj.supabase.co/storage/v1/object/public/kp-media/';
   const realFetch = window.fetch.bind(window);
   const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -79,7 +79,7 @@
   const token = () => Array.from(crypto.getRandomValues(new Uint8Array(15)), b => (b % 36).toString(36)).join('');
 
   async function route(path, q, method, body) {
-    await loadCfg(); const d = db(); let m;
+    await loadCfg(); const d = db(); let m; if (path.startsWith('admin/') && path !== 'admin/login' && path !== 'admin/logout' && lsGet(KEY_ADM) !== '1') throw new E(401, 'auth', 'Нужно войти');
     if (path === 'public/config') { const { reviews, ...pub } = cfg; return { ...pub, today: dateOf(curDay()) }; }
     if (path === 'public/reviews' && method === 'GET') { const own = (d.rv || []).filter(r => r.status === 'published'); const R = cfg.reviews; return { count: R.count + own.length, avg: R.avg, items: [...own, ...R.items] }; }
     if (path === 'public/reviews' && method === 'POST') { d.rv = d.rv || []; d.rv.unshift({ name: String(body.name || 'Гость').slice(0, 40), rating: Math.max(1, Math.min(5, +body.rating || 5)), text: String(body.text || '').slice(0, 800), status: 'pending', created_at: Date.now(), source: '' }); save(d); return { ok: true }; }
@@ -110,8 +110,13 @@
     if (path === 'admin/callbacks') return (d.cbs || []).slice().reverse();
     if ((m = /^admin\/callbacks\/(\d+)\/done$/.exec(path))) { const c = (d.cbs || []).find(x => x.id === +m[1]); if (c) { c.done_at = Date.now(); c.done_by = 'Предпросмотр'; save(d); } return { ok: true }; }
     if (path === 'admin/stats') { const h = d.hits || {}; return { days: 30, totals: h, views: [{ day: new Date().toISOString().slice(0, 10), n: h.view || 0 }] }; }
-    if (path === 'admin/me' || path === 'admin/login') return { name: 'Предпросмотр' };
-    if (path === 'admin/logout') return {};
+    // 19.11 вход в кабинет предпросмотра по паролю (Артём: «вход администратора по паролю»). В коде только SHA-256 пароля.
+    if (path === 'admin/login') { const lg = String(body.login || '').trim().toLowerCase(), pw = String(body.password || '');
+      const hex = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw)))].map(x => x.toString(16).padStart(2, '0')).join('');
+      if (lg !== 'admin' || hex !== ADMIN_HASH) throw new E(401, 'bad_login', 'Неверный логин или пароль');
+      lsSet(KEY_ADM, '1'); return { name: 'Администратор' }; }
+    if (path === 'admin/me') return { name: 'Администратор' };
+    if (path === 'admin/logout') { try { localStorage.removeItem(KEY_ADM); } catch {} return {}; }
     if (path === 'admin/day') {
       const date = q.get('date'), a = stamp(dayNoOf(date), 0), z = a + HOURS;
       return { date, past: pastOf(date), bookings: d.rows.filter(b => ACTIVE.includes(b.status) && b.start_h < z && b.end_h > a).sort((x, y) => x.start_h - y.start_h).map(adm),
