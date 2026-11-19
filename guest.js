@@ -174,7 +174,7 @@
     const items = [...(x.video ? ['@video'] : []), ...media];
     hdStage = v => v === '@video'
       ? `<video src="${E(x.video)}" controls autoplay muted loop playsinline preload="metadata"${x.photo ? ` poster="${E(x.photo)}"` : ''} aria-label="Видео-обзор зала ${E(x.name)}"></video>`
-      : `<img src="${E(v)}" alt="Зал ${E(x.name)}">`;
+      : `<img class="hdbg" src="${E(v)}" alt="" aria-hidden="true"><img class="hdph" src="${E(v)}" alt="Зал ${E(x.name)}" title="Открыть на весь экран">`;
     st.hd = { items, i: 0 };
     // 19.11 «Что есть в зале»: темы по смыслу (петь · смотреть · играть · для чего), линейные иконки вместо смайликов, списки игр под пунктом
     const feats = hallFeats(x);
@@ -188,6 +188,7 @@
         <p class="hdl">Цена за час</p><dl class="hdrates">${rateCards}</dl>${x.extra ? `<p class="extra">Больше ${x.cap} гостей: +${x.extra} ₽ в час за каждого</p>` : ''}
         <div class="hdcta"><button type="button" class="pick hdgo" data-pick="${x.id}">Выбрать время →</button><button type="button" class="more" data-close-hall>Закрыть</button></div></div>
       <button type="button" class="x hdx" data-close-hall aria-label="Закрыть">×</button>`;
+    $('hdBody').querySelector('.hdmedia').insertAdjacentHTML('beforeend', '<button type="button" class="hdfull" data-full aria-label="На весь экран"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>');
     $('hallDlg').showModal(); hit('hall:' + x.slug);
   }
   function hdGo(i) {
@@ -542,6 +543,11 @@
     if (list && dots) { list.addEventListener('scroll', () => requestAnimationFrame(draw), { passive: true }); new MutationObserver(draw).observe(list, { childList: true });
       dots.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; const c = list.querySelectorAll('.hl')[+b.dataset.i]; if (c) list.scrollTo({ left: c.offsetLeft - list.offsetLeft - parseFloat(getComputedStyle(list).paddingLeft || 0), behavior: 'smooth' }); });
       draw(); } }
+  // 19.11 фото зала целиком: в окне фото вписано без обрезки (по краям размытая копия), по нажатию — на весь экран
+  { const dlg = $('hallDlg'), full = on => { const m = dlg.querySelector('.hdmedia'); if (!m) return; m.classList.toggle('full', on); dlg.classList.toggle('fullon', on); };
+    dlg.addEventListener('click', ev => { if (ev.target.closest('[data-full]') || ev.target.classList.contains('hdph')) { full(!dlg.classList.contains('fullon')); } else if (dlg.classList.contains('fullon') && ev.target.closest('.hdstage') && !ev.target.closest('video')) full(false); });
+    dlg.addEventListener('cancel', ev => { if (dlg.classList.contains('fullon')) { ev.preventDefault(); full(false); } });
+    dlg.addEventListener('close', () => full(false)); }
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && mnav && !mnav.hidden) menuOpen(false); });
   document.addEventListener('keydown', ev => { if ($('hallDlg').open && st.hd && st.hd.items.length > 1 && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) { ev.preventDefault(); hdGo((st.hd.i + (ev.key === 'ArrowRight' ? 1 : -1) + st.hd.items.length) % st.hd.items.length); return; } if (ev.key === 'Escape') { form(false); cbForm(false); rvForm(false); calOpen(false); } });
   $('rvSheet').addEventListener('submit', sendReview);
