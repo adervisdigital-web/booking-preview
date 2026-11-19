@@ -144,7 +144,7 @@
   const icon = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SVG[k] || SVG.users}</svg>`;
   // разбор строки «что есть в зале» и списков игр в темы: Петь · Смотреть · Играть · Для чего
   function hallFeats(x) {
-    const toks = String(x.what || '').split(/[,.]\s*/).map(t => t.trim()).filter(Boolean), lists = {};
+    const toks = String(x.what || '').split(/[,.]\s+/).map(t => t.trim()).filter(Boolean), lists = {};
     String(x.games || '').split(/;\s*/).forEach(s => { const m = /^([^:]+):\s*(.+)$/.exec(s.trim()); if (m) lists[m[1].toLowerCase()] = m[2].replace(/\s*и другие$/, '').trim(); });
     const list = re => { const k = Object.keys(lists).find(k => re.test(k)); return k ? lists[k] : ''; };
     const G = { sing: [], watch: [], play: [], fit: [] }, add = (g, ic, t, s) => { if (!G[g].some(i => i.t === t)) G[g].push({ ic, t, s }); };
@@ -182,7 +182,7 @@
     $('hdBody').innerHTML = `<div class="hdmedia"><div class="hdstage" id="hdStage">${items.length ? hdStage(items[0]) : ''}</div>
         ${items.length > 1 ? `<button type="button" class="hdnav prev" data-hnav="-1" aria-label="Предыдущее фото">‹</button><button type="button" class="hdnav next" data-hnav="1" aria-label="Следующее фото">›</button><span class="hdcount" id="hdCount">1 / ${items.length}</span>` : ''}
         ${items.length > 1 ? `<div class="thumbs">${items.map((m, i) => `<button type="button" data-thumb="${E(m)}" data-ti="${i}"${i ? '' : ' class="on"'} aria-label="${m === '@video' ? 'Видео 360°' : 'Фото ' + (i + (x.video ? 0 : 1))}"><img src="${E(m === '@video' ? (x.photo || media[0] || '') : m)}" alt="" loading="lazy">${m === '@video' ? '<span class="tplay">▶ 360°</span>' : ''}</button>`).join('')}</div>` : ''}</div>
-      <div class="hdtext"><span class="hdkick">Зал · до ${x.cap} человек</span><h3 id="hdT">${E(x.name)}</h3>
+      <div class="hdtext"><span class="hdkick">Зал</span><h3 id="hdT">${E(x.name)}</h3>
         ${x.desc ? `<p class="lead2">${E(x.desc)}</p>` : ''}
         ${feats}
         <p class="hdl">Цена за час</p><dl class="hdrates">${rateCards}</dl>${x.extra ? `<p class="extra">Больше ${x.cap} гостей: +${x.extra} ₽ в час за каждого</p>` : ''}
