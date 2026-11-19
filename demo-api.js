@@ -2,7 +2,7 @@
 // Подключается только в сборке предпросмотра. Брони вымышленные, настоящих данных здесь нет.
 (() => {
   const FROM = 12, HOURS = 18, TZ = 5, H = 3600000;
-  const STORE = 'booking_preview_v4', KEY_D = 'booking_preview_d'; const KEY_ADM = 'booking_preview_admin', ADMIN_HASH = '72375ce40cfda7502b8cf052e82437ef68efe7c53c5f746c4df451cda1d8c863';
+  const STORE = 'booking_preview_v4', KEY_D = 'booking_preview_d'; const KEY_ADM = 'booking_preview_admin', ADMIN_HASH = '9e6bc314aae7eaa6dd81456062e6f8d92d2f7474a944e3b5276ecb04d5995a60';
   const BASE = 'https://mlsmybtspqqpsvbukbcj.supabase.co/storage/v1/object/public/kp-media/';
   const realFetch = window.fetch.bind(window);
   const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
