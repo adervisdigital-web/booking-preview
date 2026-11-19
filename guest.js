@@ -139,6 +139,8 @@
     pc: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M2 20h20M9 16l-1 4M15 16l1 4"/>',
     heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
     lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    rub: '<path d="M8 21V3h5.5a4.5 4.5 0 0 1 0 9H5M5 16h9"/>',
+    v360: '<path d="M21 12c0 2.2-4 4-9 4s-9-1.8-9-4 4-4 9-4c2.3 0 4.4.4 6 1"/><path d="M16 6.5 18.5 9 16 11.5"/>',
     users: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2A5 5 0 0 1 21 19"/>'
   };
   const icon = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SVG[k] || SVG.users}</svg>`;
@@ -147,26 +149,26 @@
     const toks = String(x.what || '').split(/[,.]\s+/).map(t => t.trim()).filter(Boolean), lists = {};
     String(x.games || '').split(/;\s*/).forEach(s => { const m = /^([^:]+):\s*(.+)$/.exec(s.trim()); if (m) lists[m[1].toLowerCase()] = m[2].replace(/\s*и другие$/, '').trim(); });
     const list = re => { const k = Object.keys(lists).find(k => re.test(k)); return k ? lists[k] : ''; };
-    const G = { sing: [], watch: [], play: [], fit: [] }, add = (g, ic, t, s) => { if (!G[g].some(i => i.t === t)) G[g].push({ ic, t, s }); };
+    const G = { sing: [], watch: [], play: [], fit: [] }, notes = [], add = (g, ic, t, s) => { if (!G[g].some(i => i.t === t)) G[g].push({ ic, t, s }); };
     for (const t of toks) {
       const ps = /playstation\s*(\d)/i.exec(t), scr = /(\d+(?:,\d+)?)\s*м/.exec(t);
-      if (/караоке/i.test(t)) add('sing', 'mic', 'Караоке', /два микрофона/i.test(t) ? 'два микрофона' : '');
-      else if (/экран/i.test(t)) add('watch', 'screen', 'Большой экран', scr ? scr[1] + ' м по диагонали' : '');
-      else if (/кино|фильм/i.test(t)) add('watch', 'film', 'Кино', 'свой фильм на экране');
-      else if (/спорт/i.test(t)) add('watch', 'sport', 'Спорт', 'прямые трансляции матчей');
-      else if (ps) add('play', 'pad', 'PlayStation ' + ps[1], list(new RegExp('playstation\\s*' + ps[1], 'i')));
-      else if (/(^|\s)vr($|\s)/i.test(t)) add('play', 'vr', 'VR-очки', list(/^vr/i));
-      else if (/настольн/i.test(t)) add('play', 'dice', 'Настольные игры', list(/настольн/i));
-      else if (/^пк$|компьютер/i.test(t)) add('play', 'pc', 'Компьютер', 'для игр и музыки');
-      else if (/романт/i.test(t)) add('fit', 'heart', 'Свидание', 'романтический вечер вдвоём');
-      else if (/закрыт/i.test(t)) add('fit', 'lock', 'Закрытый зал', 'только ваша компания');
+      if (/караоке/i.test(t)) add('sing', 'mic', 'Караоке', /два микрофона/i.test(t) ? '2 микрофона' : '');
+      else if (/экран/i.test(t)) add('watch', 'screen', 'Экран', scr ? scr[1] + ' м' : '');
+      else if (/кино|фильм/i.test(t)) add('watch', 'film', 'Кино', '');
+      else if (/спорт/i.test(t)) add('watch', 'sport', 'Спорт-трансляции', '');
+      else if (ps) { add('play', 'pad', 'PlayStation ' + ps[1], ''); const l = list(new RegExp('playstation\\s*' + ps[1], 'i')); if (l) notes.push(['PlayStation ' + ps[1], l]); }
+      else if (/(^|\s)vr($|\s)/i.test(t)) { add('play', 'vr', 'VR', ''); const l = list(/^vr/i); if (l) notes.push(['VR', l]); }
+      else if (/настольн/i.test(t)) { add('play', 'dice', 'Настольные игры', ''); const l = list(/настольн/i); if (l) notes.push(['Настольные', l]); }
+      else if (/^пк$|компьютер/i.test(t)) add('play', 'pc', 'ПК', '');
+      else if (/романт/i.test(t)) add('fit', 'heart', 'Свидание', '');
+      else if (/закрыт/i.test(t)) add('fit', 'lock', 'Закрытый зал', '');
       else if (/больш\S* компан/i.test(t)) add('fit', 'users', 'Большая компания', '');
     }
-    add('fit', 'users', 'До ' + x.cap + ' гостей', x.extra ? 'больше — за доплату' : '');
-    const T = { sing: 'Петь', watch: 'Смотреть', play: 'Играть', fit: 'Для чего подходит' };
-    const out = Object.keys(T).filter(k => G[k].length).map(k => `<div class="hdgrp"><p class="hdl">${T[k]}</p><div class="hdfeat2">${G[k].map(i => `<div class="hf"><span class="hfi">${icon(i.ic)}</span><span class="hft"><b>${E(i.t)}</b>${i.s ? `<small>${E(i.s)}</small>` : ''}</span></div>`).join('')}</div></div>`).join('');
-    return out ? `<div class="hdfeats">${out}</div>` : '';
+    const T = { sing: 'Петь', watch: 'Смотреть', play: 'Играть', fit: 'Подходит' };
+    const rows = Object.keys(T).filter(k => G[k].length).map(k => `<div class="fg"><span class="fgl">${T[k]}</span><div class="fgi">${G[k].map(i => `<span class="fc">${icon(i.ic)}${E(i.t)}${i.s ? `<i>${E(i.s)}</i>` : ''}</span>`).join('')}</div>${k === 'play' && notes.length ? `<div class="fgn">${notes.map(([n, l]) => `<p><b>${E(n)}:</b> ${E(l)}</p>`).join('')}</div>` : ''}</div>`).join('');
+    return rows ? `<div class="hdfeats2">${rows}</div>` : '';
   }
+  const minRate = x => Math.min(...Object.values(x.rates || {}).flatMap(r => Array.isArray(r) ? r.map(v => v[1]) : [r]).filter(v => +v > 0));
   // Карточка зала, как товар во ВКонтакте: фото, видео, описание, что есть в зале, цены
   function openMore(id) {
     const x = hall(id), media = [x.photo, ...(x.gallery || [])].filter(Boolean);
@@ -178,15 +180,21 @@
     st.hd = { items, i: 0 };
     // 19.11 «Что есть в зале»: темы по смыслу (петь · смотреть · играть · для чего), линейные иконки вместо смайликов, списки игр под пунктом
     const feats = hallFeats(x);
-    const rateCards = rateLines(x).replace(/<div><dt>/g, '<div class="hdrc"><dt>');
     $('hdBody').innerHTML = `<div class="hdmedia"><div class="hdstage" id="hdStage">${items.length ? hdStage(items[0]) : ''}</div>
         ${items.length > 1 ? `<button type="button" class="hdnav prev" data-hnav="-1" aria-label="Предыдущее фото">‹</button><button type="button" class="hdnav next" data-hnav="1" aria-label="Следующее фото">›</button><span class="hdcount" id="hdCount">1 / ${items.length}</span>` : ''}
         ${items.length > 1 ? `<div class="thumbs">${items.map((m, i) => `<button type="button" data-thumb="${E(m)}" data-ti="${i}"${i ? '' : ' class="on"'} aria-label="${m === '@video' ? 'Видео 360°' : 'Фото ' + (i + (x.video ? 0 : 1))}"><img src="${E(m === '@video' ? (x.photo || media[0] || '') : m)}" alt="" loading="lazy">${m === '@video' ? '<span class="tplay">▶ 360°</span>' : ''}</button>`).join('')}</div>` : ''}</div>
-      <div class="hdtext"><span class="hdkick">Зал</span><h3 id="hdT">${E(x.name)}</h3>
+      <div class="hdtext">
+        <div class="hdhnav">${(() => { const L = C.halls, i = L.findIndex(h => h.id === x.id), pv = L[(i - 1 + L.length) % L.length], nx = L[(i + 1) % L.length];
+          return `<button type="button" data-hall-go="${pv.id}" aria-label="Предыдущий зал">‹ ${E(pv.name)}</button><span>${i + 1} из ${L.length}</span><button type="button" data-hall-go="${nx.id}" aria-label="Следующий зал">${E(nx.name)} ›</button>`; })()}</div>
+        <h3 id="hdT">${E(x.name)}</h3>
+        <ul class="hdmeta"><li>${icon('users')}до ${x.cap} гостей</li><li>${icon('rub')}от ${num(minRate(x))} ₽/ч</li>${x.video ? `<li class="v">${icon('v360')}видео 360°</li>` : ''}</ul>
         ${x.desc ? `<p class="lead2">${E(x.desc)}</p>` : ''}
-        ${feats}
-        <p class="hdl">Цена за час</p><dl class="hdrates">${rateCards}</dl>${x.extra ? `<p class="extra">Больше ${x.cap} гостей: +${x.extra} ₽ в час за каждого</p>` : ''}
-        <div class="hdcta"><button type="button" class="pick hdgo" data-pick="${x.id}">Выбрать время →</button><button type="button" class="more" data-close-hall>Закрыть</button></div></div>
+        <div class="hdmid">
+          ${feats}
+          <div class="hdprice"><p class="hdl">Цена за час, весь зал</p><dl class="hdpr">${rateLines(x)}</dl>${x.extra ? `<p class="extra">Больше ${x.cap} гостей: +${x.extra} ₽ в час за каждого</p>` : ''}</div>
+        </div>
+        <div class="hdfoot"><div class="hdfp"><small>за час, весь зал</small><b>от ${num(minRate(x))} ₽</b></div><button type="button" class="pick hdgo" data-pick="${x.id}">Выбрать время →</button></div>
+      </div>
       <button type="button" class="x hdx" data-close-hall aria-label="Закрыть">×</button>`;
     $('hdBody').querySelector('.hdmedia').insertAdjacentHTML('beforeend', '<button type="button" class="hdfull" data-full aria-label="На весь экран"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>');
     $('hallDlg').showModal(); hit('hall:' + x.slug);
@@ -511,6 +519,7 @@
     const oc = t.closest('[data-focc]'); if (oc) { st.occ = st.occ === oc.dataset.focc ? null : oc.dataset.focc; drawOcc(); if (st.occ === 'Другое') $('fCom').focus(); return; }
     const w = t.closest('[data-wall]'); if (w) { openHall(+w.dataset.wall, wall.date, w.classList.contains('on')).catch(e => toast('Нет связи', e.message, 'alt')); return; }
     const p = t.closest('[data-pick]'); if (p) { if ($('hallDlg').open) $('hallDlg').close(); openHall(+p.dataset.pick, st.date, false).catch(e => toast('Нет связи', e.message, 'alt')); return; }
+    const hg = t.closest('[data-hall-go]'); if (hg) { const d = $('hallDlg'); d.close(); openMore(+hg.dataset.hallGo); return; }
     const mo = t.closest('[data-more]'); if (mo) { openMore(+mo.dataset.more); return; }
     const th = t.closest('[data-thumb]'); if (th) { hdGo(+th.dataset.ti); return; }
     const hn = t.closest('[data-hnav]'); if (hn && st.hd) { hdGo((st.hd.i + +hn.dataset.hnav + st.hd.items.length) % st.hd.items.length); return; }
