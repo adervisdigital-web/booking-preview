@@ -163,3 +163,4 @@ dialog.fullon .hdx{display:none}
   .hdlg>div>.hdmedia.full{position:fixed;height:100dvh;max-height:none}
 }
 .hdstage>img.hdbg{filter:blur(30px) brightness(.7) saturate(1.3)}
+.hdstage>img.hdph{background:transparent}
