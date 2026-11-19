@@ -161,7 +161,7 @@
       else if (/настольн/i.test(t)) { add('play', 'dice', 'Настольные игры', ''); const l = list(/настольн/i); if (l) notes.push(['Настольные', l]); }
       else if (/^пк$|компьютер/i.test(t)) add('play', 'pc', 'ПК', '');
       else if (/романт/i.test(t)) add('fit', 'heart', 'Свидание', '');
-      else if (/закрыт/i.test(t)) add('fit', 'lock', 'Закрытый зал', '');
+      else if (/закрыт/i.test(t)) {}   // все залы закрытые — не выделяем
       else if (/больш\S* компан/i.test(t)) add('fit', 'users', 'Большая компания', '');
     }
     const T = { sing: 'Петь', watch: 'Смотреть', play: 'Играть', fit: 'Подходит' };
