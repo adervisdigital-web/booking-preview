@@ -119,3 +119,13 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
   .hltop .cap{font-size:11.5px;padding:4px 8px}
   .hlist{align-items:stretch}
 }
+
+/* точки под лентой залов (только телефон) */
+.hldots{display:none}
+@media (max-width:760px){
+  .hldots{display:flex;justify-content:center;gap:4px;margin-top:14px}
+  .hldots button{width:24px;height:24px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer}
+  .hldots button::before{content:'';width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);transition:width .2s,background .2s}
+  .hldots button.on::before{width:20px;border-radius:4px;background:var(--neon-r)}
+  #hallsT::after{display:none}
+}

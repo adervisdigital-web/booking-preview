@@ -497,6 +497,13 @@
   const menuOpen = on => { if (!mnav) return; mnav.hidden = !on; burger.setAttribute('aria-expanded', on); document.body.classList.toggle('menuopen', on); if (on) { const tb = document.querySelector('.topbar'); mnav.style.paddingTop = Math.round((tb ? tb.getBoundingClientRect().bottom : 70) + 14) + 'px'; }
     const tel = $('topTel'), mt = $('mTel'); if (on && tel && mt) { mt.href = tel.href; mt.textContent = tel.textContent; mt.hidden = !tel.textContent; } };
   if (burger) { burger.addEventListener('click', () => menuOpen(mnav.hidden)); mnav.addEventListener('click', ev => { if (ev.target.closest('a') || ev.target === mnav) menuOpen(false); }); }
+  // 19.11 точки-индикатор под залами на телефоне: где ты в ленте и быстрый переход к залу
+  { const list = $('hallList'), dots = $('hlDots'); let n = 0;
+    const draw = () => { const cards = list.querySelectorAll('.hl'); if (cards.length !== n) { n = cards.length; dots.innerHTML = [...cards].map((c, i) => `<button type="button" data-i="${i}" aria-label="${E((c.querySelector('h3') || {}).textContent || 'Зал ' + (i + 1))}"></button>`).join(''); }
+      const w = cards[0] ? cards[0].getBoundingClientRect().width + 14 : 1, i = Math.round(list.scrollLeft / w); dots.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === i)); };
+    if (list && dots) { list.addEventListener('scroll', () => requestAnimationFrame(draw), { passive: true }); new MutationObserver(draw).observe(list, { childList: true });
+      dots.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; const c = list.querySelectorAll('.hl')[+b.dataset.i]; if (c) list.scrollTo({ left: c.offsetLeft - list.offsetLeft - parseFloat(getComputedStyle(list).paddingLeft || 0), behavior: 'smooth' }); });
+      draw(); } }
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && mnav && !mnav.hidden) menuOpen(false); });
   document.addEventListener('keydown', ev => { if ($('hallDlg').open && st.hd && st.hd.items.length > 1 && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) { ev.preventDefault(); hdGo((st.hd.i + (ev.key === 'ArrowRight' ? 1 : -1) + st.hd.items.length) % st.hd.items.length); return; } if (ev.key === 'Escape') { form(false); cbForm(false); rvForm(false); calOpen(false); } });
   $('rvSheet').addEventListener('submit', sendReview);
