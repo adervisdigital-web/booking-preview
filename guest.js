@@ -144,22 +144,23 @@
   const icon = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SVG[k] || SVG.users}</svg>`;
   // разбор строки «что есть в зале» и списков игр в темы: Петь · Смотреть · Играть · Для чего
   function hallFeats(x) {
-    const toks = String(x.what || '').split(/[,.]s*/).map(t => t.trim()).filter(Boolean), lists = {};
-    String(x.games || '').split(/;s*/).forEach(s => { const m = /^([^:]+):s*(.+)$/.exec(s.trim()); if (m) lists[m[1].toLowerCase()] = m[2].replace(/s*и другие$/, '').trim(); });
+    const toks = String(x.what || '').split(/[,.]\s*/).map(t => t.trim()).filter(Boolean), lists = {};
+    String(x.games || '').split(/;\s*/).forEach(s => { const m = /^([^:]+):\s*(.+)$/.exec(s.trim()); if (m) lists[m[1].toLowerCase()] = m[2].replace(/\s*и другие$/, '').trim(); });
     const list = re => { const k = Object.keys(lists).find(k => re.test(k)); return k ? lists[k] : ''; };
     const G = { sing: [], watch: [], play: [], fit: [] }, add = (g, ic, t, s) => { if (!G[g].some(i => i.t === t)) G[g].push({ ic, t, s }); };
     for (const t of toks) {
+      const ps = /playstation\s*(\d)/i.exec(t), scr = /(\d+(?:,\d+)?)\s*м/.exec(t);
       if (/караоке/i.test(t)) add('sing', 'mic', 'Караоке', /два микрофона/i.test(t) ? 'два микрофона' : '');
-      else if (/экран/i.test(t)) add('watch', 'screen', 'Большой экран', (/[d,]+s*м/.exec(t) || [''])[0].replace('метра', 'м') + (t.match(/[d,]+/) ? ' по диагонали' : ''));
+      else if (/экран/i.test(t)) add('watch', 'screen', 'Большой экран', scr ? scr[1] + ' м по диагонали' : '');
       else if (/кино|фильм/i.test(t)) add('watch', 'film', 'Кино', 'свой фильм на экране');
       else if (/спорт/i.test(t)) add('watch', 'sport', 'Спорт', 'прямые трансляции матчей');
-      else if (/playstations*(d)/i.test(t)) { const n = /playstations*(d)/i.exec(t)[1]; add('play', 'pad', 'PlayStation ' + n, list(new RegExp('playstation\s*' + n, 'i'))); }
-      else if (/^vr$|vr/i.test(t)) add('play', 'vr', 'VR-очки', list(/^vr/i));
+      else if (ps) add('play', 'pad', 'PlayStation ' + ps[1], list(new RegExp('playstation\\s*' + ps[1], 'i')));
+      else if (/(^|\s)vr($|\s)/i.test(t)) add('play', 'vr', 'VR-очки', list(/^vr/i));
       else if (/настольн/i.test(t)) add('play', 'dice', 'Настольные игры', list(/настольн/i));
       else if (/^пк$|компьютер/i.test(t)) add('play', 'pc', 'Компьютер', 'для игр и музыки');
       else if (/романт/i.test(t)) add('fit', 'heart', 'Свидание', 'романтический вечер вдвоём');
       else if (/закрыт/i.test(t)) add('fit', 'lock', 'Закрытый зал', 'только ваша компания');
-      else if (/большS* компан/i.test(t)) add('fit', 'users', 'Большая компания', '');
+      else if (/больш\S* компан/i.test(t)) add('fit', 'users', 'Большая компания', '');
     }
     add('fit', 'users', 'До ' + x.cap + ' гостей', x.extra ? 'больше — за доплату' : '');
     const T = { sing: 'Петь', watch: 'Смотреть', play: 'Играть', fit: 'Для чего подходит' };
