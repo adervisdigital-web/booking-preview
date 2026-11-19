@@ -128,6 +128,44 @@
       ${x.extra ? `<p class="extra">Сверх ${x.cap} человек: +${x.extra} ₽ в час за гостя</p>` : ''}
       <div class="hlact"><button type="button" class="pick" data-pick="${x.id}">Выбрать время</button><button type="button" class="more" data-more="${x.id}">Подробнее о зале</button></div></div></article>`).join('');
   }
+  const SVG = {
+    mic: '<path d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6"/>',
+    film: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9h4M3 15h4M17 9h4M17 15h4"/>',
+    sport: '<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 4.5h-5L8 10z"/><path d="M12 3v4M21 10l-5 0M3 10h5M7 20l2.5-5.5M17 20l-2.5-5.5"/>',
+    screen: '<rect x="2" y="4" width="20" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/>',
+    pad: '<path d="M7 8h10a4 4 0 0 1 4 4l.6 4.2a2.5 2.5 0 0 1-4.4 2L15 16H9l-2.2 2.2a2.5 2.5 0 0 1-4.4-2L3 12a4 4 0 0 1 4-4z"/><path d="M8 11v3M6.5 12.5h3"/><circle cx="15.5" cy="11.5" r=".6"/><circle cx="17.5" cy="13.5" r=".6"/>',
+    vr: '<path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4l-1.5-2.2a1.8 1.8 0 0 0-3 0L9 17H5a2 2 0 0 1-2-2z"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/>',
+    dice: '<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r=".9"/><circle cx="15" cy="9" r=".9"/><circle cx="12" cy="12" r=".9"/><circle cx="9" cy="15" r=".9"/><circle cx="15" cy="15" r=".9"/>',
+    pc: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M2 20h20M9 16l-1 4M15 16l1 4"/>',
+    heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    users: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2A5 5 0 0 1 21 19"/>'
+  };
+  const icon = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SVG[k] || SVG.users}</svg>`;
+  // разбор строки «что есть в зале» и списков игр в темы: Петь · Смотреть · Играть · Для чего
+  function hallFeats(x) {
+    const toks = String(x.what || '').split(/[,.]s*/).map(t => t.trim()).filter(Boolean), lists = {};
+    String(x.games || '').split(/;s*/).forEach(s => { const m = /^([^:]+):s*(.+)$/.exec(s.trim()); if (m) lists[m[1].toLowerCase()] = m[2].replace(/s*и другие$/, '').trim(); });
+    const list = re => { const k = Object.keys(lists).find(k => re.test(k)); return k ? lists[k] : ''; };
+    const G = { sing: [], watch: [], play: [], fit: [] }, add = (g, ic, t, s) => { if (!G[g].some(i => i.t === t)) G[g].push({ ic, t, s }); };
+    for (const t of toks) {
+      if (/караоке/i.test(t)) add('sing', 'mic', 'Караоке', /два микрофона/i.test(t) ? 'два микрофона' : '');
+      else if (/экран/i.test(t)) add('watch', 'screen', 'Большой экран', (/[d,]+s*м/.exec(t) || [''])[0].replace('метра', 'м') + (t.match(/[d,]+/) ? ' по диагонали' : ''));
+      else if (/кино|фильм/i.test(t)) add('watch', 'film', 'Кино', 'свой фильм на экране');
+      else if (/спорт/i.test(t)) add('watch', 'sport', 'Спорт', 'прямые трансляции матчей');
+      else if (/playstations*(d)/i.test(t)) { const n = /playstations*(d)/i.exec(t)[1]; add('play', 'pad', 'PlayStation ' + n, list(new RegExp('playstation\s*' + n, 'i'))); }
+      else if (/^vr$|vr/i.test(t)) add('play', 'vr', 'VR-очки', list(/^vr/i));
+      else if (/настольн/i.test(t)) add('play', 'dice', 'Настольные игры', list(/настольн/i));
+      else if (/^пк$|компьютер/i.test(t)) add('play', 'pc', 'Компьютер', 'для игр и музыки');
+      else if (/романт/i.test(t)) add('fit', 'heart', 'Свидание', 'романтический вечер вдвоём');
+      else if (/закрыт/i.test(t)) add('fit', 'lock', 'Закрытый зал', 'только ваша компания');
+      else if (/большS* компан/i.test(t)) add('fit', 'users', 'Большая компания', '');
+    }
+    add('fit', 'users', 'До ' + x.cap + ' гостей', x.extra ? 'больше — за доплату' : '');
+    const T = { sing: 'Петь', watch: 'Смотреть', play: 'Играть', fit: 'Для чего подходит' };
+    const out = Object.keys(T).filter(k => G[k].length).map(k => `<div class="hdgrp"><p class="hdl">${T[k]}</p><div class="hdfeat2">${G[k].map(i => `<div class="hf"><span class="hfi">${icon(i.ic)}</span><span class="hft"><b>${E(i.t)}</b>${i.s ? `<small>${E(i.s)}</small>` : ''}</span></div>`).join('')}</div></div>`).join('');
+    return out ? `<div class="hdfeats">${out}</div>` : '';
+  }
   // Карточка зала, как товар во ВКонтакте: фото, видео, описание, что есть в зале, цены
   function openMore(id) {
     const x = hall(id), media = [x.photo, ...(x.gallery || [])].filter(Boolean);
@@ -138,15 +176,15 @@
       : `<img src="${E(v)}" alt="Зал ${E(x.name)}">`;
     st.hd = { items, i: 0 };
     const feats = String(x.what || '').split(/,\s*/).map(f => f.trim()).filter(Boolean);
-    const ICO = f => /караоке/i.test(f) ? '🎤' : /кино|фильм/i.test(f) ? '🎬' : /спорт/i.test(f) ? '⚽' : /playstation/i.test(f) ? '🎮' : /vr/i.test(f) ? '🥽' : /настольн/i.test(f) ? '🎲' : /пк/i.test(f) ? '💻' : /романт/i.test(f) ? '❤' : /экран/i.test(f) ? '📺' : '•';
+    // 19.11 «Что есть в зале»: темы по смыслу (петь · смотреть · играть · для чего), линейные иконки вместо смайликов, списки игр под пунктом
+    const feats = hallFeats(x);
     const rateCards = rateLines(x).replace(/<div><dt>/g, '<div class="hdrc"><dt>');
     $('hdBody').innerHTML = `<div class="hdmedia"><div class="hdstage" id="hdStage">${items.length ? hdStage(items[0]) : ''}</div>
         ${items.length > 1 ? `<button type="button" class="hdnav prev" data-hnav="-1" aria-label="Предыдущее фото">‹</button><button type="button" class="hdnav next" data-hnav="1" aria-label="Следующее фото">›</button><span class="hdcount" id="hdCount">1 / ${items.length}</span>` : ''}
         ${items.length > 1 ? `<div class="thumbs">${items.map((m, i) => `<button type="button" data-thumb="${E(m)}" data-ti="${i}"${i ? '' : ' class="on"'} aria-label="${m === '@video' ? 'Видео 360°' : 'Фото ' + (i + (x.video ? 0 : 1))}"><img src="${E(m === '@video' ? (x.photo || media[0] || '') : m)}" alt="" loading="lazy">${m === '@video' ? '<span class="tplay">▶ 360°</span>' : ''}</button>`).join('')}</div>` : ''}</div>
       <div class="hdtext"><span class="hdkick">Зал · до ${x.cap} человек</span><h3 id="hdT">${E(x.name)}</h3>
         ${x.desc ? `<p class="lead2">${E(x.desc)}</p>` : ''}
-        ${feats.length ? `<p class="hdl">Что есть в зале</p><div class="hdfeat">${feats.map(f => `<span><i aria-hidden="true">${ICO(f)}</i>${E(f[0].toUpperCase() + f.slice(1))}</span>`).join('')}</div>` : ''}
-        ${x.games ? `<p class="hdgames">${E(x.games)}</p>` : ''}
+        ${feats}
         <p class="hdl">Цена за час</p><dl class="hdrates">${rateCards}</dl>${x.extra ? `<p class="extra">Больше ${x.cap} гостей: +${x.extra} ₽ в час за каждого</p>` : ''}
         <div class="hdcta"><button type="button" class="pick hdgo" data-pick="${x.id}">Выбрать время →</button><button type="button" class="more" data-close-hall>Закрыть</button></div></div>
       <button type="button" class="x hdx" data-close-hall aria-label="Закрыть">×</button>`;

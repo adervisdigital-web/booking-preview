@@ -129,3 +129,16 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
   .hldots button.on::before{width:20px;border-radius:4px;background:var(--neon-r)}
   #hallsT::after{content:'';display:block;height:10px;margin-top:20px;max-width:180px;background:var(--perf) left/22px 10px repeat-x;opacity:.18}
 }
+
+/* 19.11 окно зала: «что есть в зале» по темам, линейные иконки */
+.hdfeats{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.hdgrp .hdl{margin:0 0 8px}
+.hdfeat2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.hf{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:4px;background:#17171b;border:1px solid rgba(255,255,255,.07)}
+.hfi{flex:none;width:34px;height:34px;border-radius:4px;display:grid;place-items:center;background:rgba(227,35,47,.12);color:#ff5a64}
+.hdgrp:nth-child(even) .hfi{background:rgba(47,92,255,.14);color:#7d9bff}
+.hfi svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hft{display:flex;flex-direction:column;gap:2px;min-width:0}
+.hft b{font-family:var(--text);font-weight:600;font-size:14.5px;line-height:1.25;color:#fff;text-transform:none;letter-spacing:0}
+.hft small{font-family:var(--text);font-size:12.5px;line-height:1.35;color:var(--smoke)}
+@media (max-width:520px){ .hdfeat2{grid-template-columns:minmax(0,1fr)} }
