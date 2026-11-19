@@ -175,7 +175,6 @@
       ? `<video src="${E(x.video)}" controls autoplay muted loop playsinline preload="metadata"${x.photo ? ` poster="${E(x.photo)}"` : ''} aria-label="Видео-обзор зала ${E(x.name)}"></video>`
       : `<img src="${E(v)}" alt="Зал ${E(x.name)}">`;
     st.hd = { items, i: 0 };
-    const feats = String(x.what || '').split(/,\s*/).map(f => f.trim()).filter(Boolean);
     // 19.11 «Что есть в зале»: темы по смыслу (петь · смотреть · играть · для чего), линейные иконки вместо смайликов, списки игр под пунктом
     const feats = hallFeats(x);
     const rateCards = rateLines(x).replace(/<div><dt>/g, '<div class="hdrc"><dt>');
