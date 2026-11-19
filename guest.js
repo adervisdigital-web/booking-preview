@@ -389,6 +389,15 @@
     $('barS').textContent = `${span(s.a, n)}, ${n} ${hrsWord(n)}, примерно ${rub(costOf(s))}`;
   }
   const LABEL = { request: 'ждёт ответа', offered: 'предлагаем другое время', confirmed: 'подтверждено', rejected: 'отклонено', cancelled: 'отменено' };
+  // 20.11 приложение: ответ администратора и напоминание уведомлением на телефон (веб-пуш), если браузер умеет
+  const PUSHED = 'chp_push';
+  const pushed = { get() { try { return JSON.parse(localStorage.getItem(PUSHED)) || []; } catch { return []; } }, add(t) { try { localStorage.setItem(PUSHED, JSON.stringify([...new Set([...pushed.get(), t])].slice(-12))); } catch {} } };
+  function pushBtn(q) {
+    const P = window.CHP_PWA;
+    if (!P || !['request', 'offered', 'confirmed'].includes(q.status) || !(P.pushSupported() || P.needsInstallForPush())) return '';
+    if (pushed.get().includes(q.token)) return '<p class="pushon">Уведомления о брони включены</p>';
+    return `<button type="button" class="tgb pushb" data-push="${E(q.token)}"><b>${q.status === 'confirmed' ? 'Напомнить уведомлением' : 'Получить ответ уведомлением'}</b><span>${P.needsInstallForPush() ? 'на iPhone сначала установите приложение на экран «Домой»' : 'ответ администратора и напоминание придут на телефон'}</span></button>`;
+  }
   function drawMine() {
     $('mine').innerHTML = (st.mine.length ? '<h3 class="mineh">Ваши брони</h3>' : '') + st.mine.slice().reverse().map(q => { const x = hall(q.hall_id);
       return `<div class="m ${q.status}"><div class="mh"><b>${E(x ? x.name : 'Зал')}, ${E(dayName(q.date))}, ${span(q.start, q.hours)}</b><span>${LABEL[q.status]}</span></div>
@@ -397,6 +406,7 @@
       ${q.status === 'confirmed' ? `<p class="mnote">Ждём вас! Если планы изменятся, позвоните: <a href="${E(C.phoneHref)}">${E(C.phone)}</a></p>
         <div class="mact">${q.date <= C.today ? `<button type="button" class="mb2 rate" data-review="${E((hall(q.hall_id) || {}).slug || '')}">★ Оценить вечер</button>` : ''}<button type="button" class="mb2" data-ics="${E(q.token)}">В календарь</button>${C.mapUrl ? `<a class="mb2" href="${E(C.mapUrl)}" target="_blank" rel="noopener" data-hit="click:map">Как добраться</a>` : ''}</div>` : ''}
       ${C.tgBot && ['request', 'offered', 'confirmed'].includes(q.status) ? `<a class="tgb" href="https://t.me/${E(C.tgBot)}?start=${E(q.token)}" target="_blank" rel="noopener"><b>${q.status === 'confirmed' ? 'Напомнить в Telegram' : 'Получить ответ в Telegram'}</b><span>${q.status === 'confirmed' ? 'пришлём напоминание за 3 часа до визита' : 'ответ администратора и напоминание придут в чат'}</span></a>` : ''}
+      ${pushBtn(q)}
       ${q.status === 'request' ? `<button type="button" class="lnk" data-dec="${E(q.token)}">Отменить заявку</button>` : ''}</div>`; }).join('');
   }
   // файл события для календаря телефона: время Перми переводим в UTC
@@ -532,6 +542,16 @@
     const ics = t.closest('[data-ics]');
     if (ics) { const q = st.mine.find(m => m.token === ics.dataset.ics); if (!q) return;
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([icsOf(q)], { type: 'text/calendar' })); a.download = 'bron.ics'; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); return; }
+    const pb = t.closest('[data-push]');
+    if (pb) {
+      const P = window.CHP_PWA; if (!P) return;
+      if (P.needsInstallForPush()) { P.install(); return; }
+      pb.disabled = true;
+      try { await P.enable(`api/public/requests/${encodeURIComponent(pb.dataset.push)}/push`); pushed.add(pb.dataset.push); toast('Уведомления включены', 'Ответ администратора и напоминание придут на телефон', 'ok'); drawMine(); }
+      catch (e) { pb.disabled = false; toast('Не получилось', e.message, 'alt'); }
+      return;
+    }
+    if (t.closest('#appInstall') || t.closest('#mApp')) { window.CHP_PWA && window.CHP_PWA.install(); return; }
     const acc = t.closest('[data-acc]'), dec = t.closest('[data-dec]');
     if (acc || dec) {
       const token = (acc || dec).dataset[acc ? 'acc' : 'dec'];
@@ -541,6 +561,9 @@
     }
   });
   // 19.11 мобильное меню (на ширине ≤1100 px верхнее меню скрыто)
+  // кнопка «Установить приложение»: в подвале и в меню, только если браузер может установить и сайт ещё не установлен
+  const syncApp = () => { const ok = !!(window.CHP_PWA && window.CHP_PWA.canInstall()); ['appInstall', 'mApp'].forEach(id => { const b = $(id); if (b) b.hidden = !ok; }); };
+  if (window.CHP_PWA) { window.CHP_PWA.onChange(syncApp); syncApp(); }
   const mnav = $('mnav'), burger = $('burger');
   const menuOpen = on => { if (!mnav) return; mnav.hidden = !on; burger.setAttribute('aria-expanded', on); document.body.classList.toggle('menuopen', on); if (on) { const tb = document.querySelector('.topbar'); mnav.style.paddingTop = Math.round((tb ? tb.getBoundingClientRect().bottom : 70) + 14) + 'px'; }
     const tel = $('topTel'), mt = $('mTel'); if (on && tel && mt) { mt.href = tel.href; mt.textContent = tel.textContent; mt.hidden = !tel.textContent; } };

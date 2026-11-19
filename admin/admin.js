@@ -131,7 +131,17 @@
     if (S.sound) beep();
     try { if (document.hidden && 'Notification' in window && Notification.permission === 'granted') new Notification('Новая заявка на бронь', { body: text, icon: '../icon-192.png', tag: 'req' + q.id }); } catch {}
   }
-  function drawSound() { $('snd').textContent = S.sound ? '🔔 Звук заявок: вкл' : '🔕 Звук заявок: выкл'; }
+  // 20.11 приложение: заявки уведомлением на телефон администратора, кнопка установки на экран
+  async function drawPush() {
+    const P = window.CHP_PWA, b = $('pushBtn'), a = $('appBtn'); if (!P || !b) return;
+    a.hidden = !P.canInstall();
+    if (P.needsInstallForPush()) { b.hidden = false; b.textContent = 'Уведомления: сначала установите на экран'; return; }
+    const st = await P.pushState().catch(() => 'unsupported');
+    b.hidden = st === 'unsupported';
+    b.textContent = st === 'on' ? 'Заявки на телефон: вкл' : st === 'denied' ? 'Уведомления запрещены в браузере' : 'Заявки на телефон: включить';
+  }
+  if (window.CHP_PWA) window.CHP_PWA.onChange(drawPush);
+  function drawSound() { drawPush(); $('snd').textContent = S.sound ? '🔔 Звук заявок: вкл' : '🔕 Звук заявок: выкл'; }
 
   function drawCb(list) {
     const open = list.filter(c => !c.done_at);
@@ -383,7 +393,18 @@
     if (t.closest('#next')) return go(addDays(S.date, 1));
     if (t.closest('#today')) return go(C.today);
     if (t.closest('#csv')) { location.href = `/api/admin/export.csv?from=${S.date.slice(0, 8)}01&to=${addDays(S.date.slice(0, 8) + '28', 4).slice(0, 8)}01`; return; }
-    if (t.closest('#out')) { await api('/logout', {}).catch(() => {}); showLogin(); }
+    if (t.closest('#pushBtn')) {
+      const P = window.CHP_PWA; if (!P) return;
+      if (P.needsInstallForPush()) { P.install(); return; }
+      const b = $('pushBtn'); b.disabled = true;
+      try {
+        if ((await P.pushState()) === 'on') { await P.disable(); toast('Уведомления выключены', 'На этот телефон заявки больше не придут'); }
+        else { await P.enable('api/admin/push'); toast('Уведомления включены', 'Новые заявки придут на этот телефон, подтвердить можно прямо из уведомления'); }
+      } catch (e) { toast('Не получилось', e.message, 'alt'); }
+      b.disabled = false; drawPush(); return;
+    }
+    if (t.closest('#appBtn')) { window.CHP_PWA && window.CHP_PWA.install(); return; }
+    if (t.closest('#out')) { if (window.CHP_PWA) await window.CHP_PWA.disable().catch(() => {}); await api('/logout', {}).catch(() => {}); showLogin(); }
   });
   // поля формы брони: часы, сумма, история гостя по номеру
   document.addEventListener('change', ev => {

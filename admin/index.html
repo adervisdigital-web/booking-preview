@@ -6,11 +6,14 @@
 <meta name="theme-color" content="#0a0a0f">
 <meta name="robots" content="noindex">
 <title>Брони: кабинет</title>
+
 <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+
 <script src="../demo-api.js"></script>
 <link rel="stylesheet" href="../app.css">
 <link rel="stylesheet" href="admin.css">
 <script src="../pricing.js" defer></script>
+<script src="../pwa.js" defer></script>
 <script src="admin.js" defer></script>
 </head>
 <body>
@@ -38,7 +41,7 @@
       <div class="list" id="list"></div>
       <div id="gridBox"><div class="gridwrap"><div class="grid" id="grid"></div></div>
         <div class="legend"><em class="l1">подтверждено</em><em class="l2">заявка гостя</em><em class="l4">предложено время</em><em class="l3">бронь по телефону</em><span>Пустая клетка: записать бронь</span></div></div>
-      <div class="tools"><button type="button" id="repBtn">Отчёт за месяц</button><button type="button" id="statsBtn">Статистика сайта</button><button type="button" id="csv">Выгрузить месяц в таблицу</button><button type="button" id="snd"></button><a href="help.html" target="_blank" rel="noopener">Памятка</a><button type="button" id="out">Выйти</button></div>
+      <div class="tools"><button type="button" id="repBtn">Отчёт за месяц</button><button type="button" id="statsBtn">Статистика сайта</button><button type="button" id="csv">Выгрузить месяц в таблицу</button><button type="button" id="snd"></button><button type="button" id="pushBtn" hidden></button><button type="button" id="appBtn" hidden>Установить приложение</button><a href="help.html" target="_blank" rel="noopener">Памятка</a><button type="button" id="out">Выйти</button></div>
     </div>
     <aside class="side"><h2>Заявки <span id="sReq">0</span></h2><div id="reqs"></div>
       <h2 class="h2b">Перезвонить <span id="sCb">0</span></h2><div id="cbs"></div>
