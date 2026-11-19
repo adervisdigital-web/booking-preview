@@ -106,3 +106,6 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
   .htags{grid-column:1;gap:8px;margin-top:12px}
   .htags li{padding:7px 13px;font-size:13.5px;border-radius:8px}
 }
+/* шапка: широкий шрифт не влезал на 1440–1600 px */
+@media (max-width:1600px){ .topbar nav{gap:16px} .topbar nav a{font-size:12.5px} }
+@media (max-width:1440px){ .topbar .status{display:none} }
