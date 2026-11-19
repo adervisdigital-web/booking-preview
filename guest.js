@@ -527,7 +527,7 @@
       $('ymap').hidden = false; $('ymap').innerHTML = `<iframe src="https://yandex.ru/map-widget/v1/?oid=${C.yandexOrgId}&ol=biz&z=16" title="Мы на карте" loading="lazy"></iframe>`;
       $('yrev').hidden = false; $('yrev').innerHTML = `<iframe src="https://yandex.ru/maps-reviews-widget/${C.yandexOrgId}?comments" title="Отзывы на Яндекс Картах" loading="lazy"></iframe>`;
     }
-    $('ownFood').textContent = C.ownFood || '';
+    $('ownFood').textContent = C.ownFood || ''; $('ownFood').hidden = !C.ownFood;   // 19.11: про свою еду уже сказано на первом экране и в вопросах
     $('programs').hidden = !C.programs?.length;
     $('programsList').innerHTML = (C.programs || []).map(p => `<div class="pr"><div><b>${E(p.name)}</b>${p.note ? `<i>${E(p.note)}</i>` : ''}</div><span>${E(p.price)}</span></div>`).join('');
     drawHallList(); drawMenu(); loadReviews(); drawPlace();

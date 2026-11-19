@@ -109,3 +109,5 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
 /* шапка: широкий шрифт не влезал на 1440–1600 px */
 @media (max-width:1600px){ .topbar nav{gap:16px} .topbar nav a{font-size:12.5px} }
 @media (max-width:1440px){ .topbar .status{display:none} }
+/* подпись к «Свободно сегодня» — обычным текстом, не мелким капсом */
+.wallhead p{text-transform:none;letter-spacing:0;font-family:var(--text);font-weight:500;font-size:14.5px;color:rgba(244,242,238,.6)}
