@@ -512,6 +512,7 @@
     // логотип: на сервере клиента лежит в brand/, в предпросмотре приходит адресом из данных; нет файла — картинку убираем
     const brandImgs = [[document.querySelector('.logo img'), C.logo], [document.querySelector('.flogoimg'), C.logoBig], [document.querySelector('.herologo'), C.logoBig]];
     for (const [img, url] of brandImgs) { if (!img) continue; img.addEventListener('error', () => img.remove(), { once: true }); if (url) img.src = url; else if (img.complete && !img.naturalWidth) img.remove(); } $('lead').textContent = C.lead || C.sub || '';
+    { const ht = $('hTags'); if (ht) { ht.innerHTML = (C.tags || []).map(t => `<li>${E(t)}</li>`).join(''); ht.hidden = !(C.tags || []).length; } }   // 19.11 плашки как на обложке ВК
     const tel = (el, show) => { if (C.phone) { el.textContent = show; el.href = `tel:${C.phoneHref}`; } else el.hidden = true; };
     tel($('topTel'), C.phone); tel($('tel'), C.phone);
     $('addr').textContent = C.address || ''; $('hoursText').textContent = C.hoursText || '';

@@ -93,3 +93,16 @@ h1{font-weight:900;font-size:clamp(38px,6.3vw,108px);line-height:.98;letter-spac
   .book .h{font-size:clamp(22px,7vw,30px)}
   .cinfo h3{font-size:clamp(22px,7vw,30px)}
 }
+
+/* 19.11 Первый экран как обложка ВК: под названием полупрозрачные плашки «караоке · игры PS5 · вкусная еда», за текстом красно-синий раскол */
+.htags{grid-column:2;display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:clamp(14px,1.6vw,22px) 0 0;padding:0}
+.htags li{padding:9px 18px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-family:var(--text);font-weight:500;font-size:clamp(14px,1.15vw,17px);color:#f1eef3;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.htags li:nth-child(odd){border-color:rgba(227,35,47,.45)}
+.htags li:nth-child(even){border-color:rgba(47,92,255,.5)}
+.herotext{position:relative}
+.herotext::after{content:'';position:absolute;z-index:-1;pointer-events:none;left:10%;right:-5%;top:-10%;bottom:20%;
+  background:radial-gradient(45% 60% at 30% 50%,rgba(227,35,47,.22),transparent 70%),radial-gradient(45% 60% at 75% 45%,rgba(47,92,255,.2),transparent 70%);filter:blur(10px)}
+@media (max-width:760px){
+  .htags{grid-column:1;gap:8px;margin-top:12px}
+  .htags li{padding:7px 13px;font-size:13.5px;border-radius:8px}
+}
